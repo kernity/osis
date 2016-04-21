@@ -18,8 +18,14 @@ functionality is accessible to users. The creation of an event in
 `academic_calendar` also creates the same event in the `offer_year_calendar` for
 each one of the offers in the same academic year. Modifications in the events
 propagates to the respective events in the offers' calendar, except when the
-event was changed by the program manager. Deleting an event also deletes all
-related events linked to the offers.
+events attached to the offers were changed by the program manager. Deleting an
+event also deletes all related events linked to the offers.
+
+An event has a start and an end. The start is a date that can also have a time.
+The end is also a date that can have a time. Both dates are required but their
+time are not. The difference between the start and the end is the duration or
+the period of an event. They are used to activate and deactivate temporal
+functionalities.
 
 ==== academic_year
 ==== attribution
