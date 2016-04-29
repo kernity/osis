@@ -67,4 +67,3 @@ class OfferYearCalendarForm(ModelForm):
     class Meta:
         model = mdl.offer_year_calendar.OfferYearCalendar
         fields = ['offer_year', 'start_date', 'end_date', 'customized']
-
