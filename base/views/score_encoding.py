@@ -24,11 +24,13 @@
 #
 ##############################################################################
 from django.core.urlresolvers import reverse
+from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from base import models as mdl
+from base.forms import DecimalScoreForm, BaseScoreFrom, get_score_form
 from base.utils import send_mail, pdf_utils, export_utils
 from . import layout
 from base.views.notes import Notes
@@ -82,17 +84,34 @@ def online_encoding(request, learning_unit_id=None, tutor_id=None):
 def online_encoding_form(request, learning_unit_id=None, tutor_id=None):
     data = get_data_online(learning_unit_id, tutor_id, request)
     enrollments = data['enrollments']
+    decimal_score_allowed = enrollments[0].session_exam.learning_unit_year.decimal_scores
     if request.method == 'GET':
+        score_form_set = formset_factory(get_score_form(decimal_score_allowed))(
+            forms=[get_score_form(decimal_score_allowed)
+                   (
+                       {
+                            'enrollment_id':        enrollment.id,
+                            'score_final':          enrollment.score_final,
+                            'score_draft':          enrollment.score_draft,
+                            'justification_final':  enrollment.justification_final,
+                            'justification_draft':  enrollment.justification_draft,
+                       },
+                       enrollment_id=enrollment.id,
+                       student=enrollment.learning_unit_enrollment.offer_enrollment.student,
+                       offer_year_acronym=enrollment.learning_unit_enrollment.offer_enrollment.offer_year.acronym,
+                       encoder_is_pgm_manager=data['is_pgmer'],
+
+                   ) for enrollment in enrollments])
         return layout.render(request, "assessments/online_encoding_form.html",
                                       {'section':           'scores_encoding',
                                        'tutor':             data['tutor'],
                                        'academic_year':     data['academic_year'],
-                                       'enrollments':       enrollments,
                                        'learning_unit':     data['learning_unit'],
                                        'justifications':    mdl.exam_enrollment.JUSTIFICATION_TYPES,
                                        'all_encoded':       data['all_encoded'],
                                        'tutor_responsible': data['tutor_responsible'],
-                                       'is_pgmer':          data['is_pgmer']})
+                                       'is_pgmer':          data['is_pgmer'],
+                                       'score_form_set':    score_form_set})
     elif request.method == 'POST':
         for enrollment in enrollments:
             score = request.POST.get('score_' + str(enrollment.id), None)

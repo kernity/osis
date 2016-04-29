@@ -25,7 +25,10 @@
 ##############################################################################
 from django import forms
 from django.forms import ModelForm
+from django.forms.formsets import BaseFormSet
+
 from base import models as mdl
+from base.models.exam_enrollment import JUSTIFICATION_TYPES
 
 
 class LoginForm(forms.Form):
@@ -67,3 +70,40 @@ class OfferYearCalendarForm(ModelForm):
     class Meta:
         model = mdl.offer_year_calendar.OfferYearCalendar
         fields = ['offer_year', 'start_date', 'end_date', 'customized']
+
+
+class BaseScoreFrom(forms.Form):
+    JUSTIFICATION_CHOICES = JUSTIFICATION_TYPES
+
+    def __init__(self,enrollment_id,student,offer_year_acronym, encoder_is_pgm_manager):
+        super().__init__()
+        self.enrollment_id = enrollment_id
+        self.student_registration_id = student.registration_id
+        self.student_last_name = student.last_name
+        self.student_first_name = student.student_first_name
+        self.offer_year_acronym = offer_year_acronym
+        self.decimal_allowed = False
+        if not encoder_is_pgm_manager:
+            self.JUSTIFICATION_CHOICES = list(filter(lambda x,y: x not in ('ILL', 'JUSTIFIED_ABSENCE'),
+                                                     JUSTIFICATION_TYPES))
+
+    score_final = forms.IntegerField(max_value=20, min_value=0)
+    score_draft = forms.IntegerField(max_value=20, min_value=0)
+    justification_final = forms.ChoiceField(choices=JUSTIFICATION_CHOICES, required=False)
+    justification_draft = forms.ChoiceField(choices=JUSTIFICATION_CHOICES, required=False)
+
+
+class DecimalScoreForm(BaseScoreFrom):
+    def __init__(self):
+        super().__init__()
+        self.decimal_allowed = True
+
+    score_final = forms.DecimalField(max_value=20,min_value=0)
+    score_draft = forms.DecimalField(max_value=20, min_value=0)
+
+
+def get_score_form(decimal):
+    if decimal:
+        return DecimalScoreForm
+    else:
+        return BaseScoreFrom
