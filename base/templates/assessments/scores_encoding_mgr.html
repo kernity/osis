@@ -100,8 +100,10 @@
                             title="{% trans 'refresh_list' %}">
                         <span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                     &nbsp;&nbsp;
+                    <span id="status_save"></span>
                 </div>
             </div>
+            <input type="hidden" id="hdn_tab" value="{{ tab }}"/>
         </form>
         <br>
         {% include "template_messages.html" %}
@@ -120,19 +122,19 @@
             </div>
         </div>
         <div>
-            <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active"><a href="#tab_online_{{forloop.counter0}}"
+            <ul class="nav nav-tabs" id="tabs">
+                <li class="active"><a href="#tab_online_encoding"
                                                           aria-controls="online" role="tab" data-toggle="tab"
-                                                          id="lnk_online_{{forloop.counter0}}">{% trans 'online' %}</a>
+                                                          id="lnk_online_encoding">{% trans 'online' %}</a>
                 </li>
-                <li role="presentation"><a href="#tab_via_paper_{{forloop.counter0}}" aria-controls="via_paper"
+                <li><a href="#tab_via_paper_encoding" aria-controls="via_paper"
                                            role="tab"
-                                           data-toggle="tab" id="lnk_via_paper_{{forloop.counter0}}">{% trans 'via_paper' %}</a></li>
-                <li role="presentation"><a href="#tab_via_excel_{{forloop.counter0}}" aria-controls="via_excel" role="tab"
-                                           data-toggle="tab" id="lnk_via_excel_{{forloop.counter0}}">{% trans 'via_excel' %}</a></li>
+                                           data-toggle="tab" id="lnk_via_paper_encoding">{% trans 'via_paper' %}</a></li>
+                <li><a href="#tab_via_excel_encoding" aria-controls="via_excel" role="tab"
+                                           data-toggle="tab" id="lnk_via_excel_encoding">{% trans 'via_excel' %}</a></li>
             </ul>
             <div class="tab-content" id="pnl_learning_units">
-                <div role="tabpanel" class="tab-pane fade in active" id="tab_online_{{forloop.counter0}}">
+                <div role="tabpanel" class="tab-pane fade in active" id="tab_online_encoding">
                     <table class="table table-hover">
                         <thead>
                         <tr>
@@ -177,7 +179,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane fade" id="tab_via_excel_{{forloop.counter0}}">
+                <div role="tabpanel" class="tab-pane fade" id="tab_via_excel_encoding">
                     <table class="table table-hover">
                         <thead>
                         <tr>
@@ -225,7 +227,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div role="tabpanel" class="tab-pane fade" id="tab_via_paper_{{forloop.counter0}}">
+                <div role="tabpanel" class="tab-pane fade" id="tab_via_paper_encoding">
                     <br>
                     <a class="btn btn-default {% if not tutor_id or tutor_id == -1 %}disabled{%endif%}"
                        href="{%if tutor_id and tutor_id != -1 and offer_year_id %}
@@ -297,4 +299,42 @@
       <p style="font-size: 130%">{% trans 'no_score_to_encode' %} </p>
     </div>
 {% endif %}
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    $('#tabs a').click(function (e) {
+        e.preventDefault();
+        var href = $(this).prop('href');
+        var idTab = document.getElementById("form:hdn_tab");
+        var hash = href.substring(href.indexOf("#"));
+        window.location.hash = hash;
+        $("#form_search_learning_units").prop("action", "{% url 'refresh_list' %}" + hash);
+        console.log($("#form_search_learning_units").prop("action"));
+
+        if(idTab != null) {
+            idTab.value = hash;
+            $(this).tab('show');
+        }
+
+    });
+
+    function selectTab() {
+        var url = window.location.toString();
+        var hash = url.substring(url.indexOf("#"));
+
+        if(hash.indexOf("#") < 0) {
+            var idTab = document.getElementById("form:hdn_tab");
+            if(idTab != null) {
+                hash = idTab.value;
+                if(hash === '') {
+                    hash = '#tab_online_encoding';
+                }
+            }
+        }
+        $('#tabs a[href="'+ hash +'"]').tab('show');
+    }
+
+    selectTab();
+</script>
 {% endblock %}

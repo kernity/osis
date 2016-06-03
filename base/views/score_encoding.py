@@ -556,7 +556,8 @@ def get_data_pgmer(request,
                           'academic_year': academic_yr,
                           'number_session': mdl.session_exam.find_session_exam_number(),
                           'learning_unit_year_acronym': learning_unit_year_acronym,
-                          'incomplete_encodings_only': incomplete_encodings_only})
+                          'incomplete_encodings_only': incomplete_encodings_only,
+                          'tab': 0})
 
 
 @login_required
