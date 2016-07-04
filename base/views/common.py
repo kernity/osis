@@ -103,13 +103,13 @@ def catalog(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff and u.has_perm('base.is_administrator'))
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def data(request):
     return layout.render(request, "admin/data.html", {'section': 'data'})
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff and u.has_perm('base.is_administrator'))
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def data_maintenance(request):
     sql_command = request.POST.get('sql_command')
     results = mdl.native.execute(sql_command)
@@ -125,7 +125,7 @@ def academic_year(request):
 
 
 @login_required
-@permission_required('base.is_administrator', raise_exception=True)
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def storage(request):
     df = subprocess.Popen(["df", "-h"], stdout=subprocess.PIPE)
     output = df.communicate()[0]
@@ -152,13 +152,13 @@ def storage(request):
 
 
 @login_required
-@permission_required('base.is_administrator', raise_exception=True)
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def files(request):
     return layout.render(request, "admin/files.html", {})
 
 
 @login_required
-@permission_required('base.is_administrator', raise_exception=True)
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def files_search(request):
     registration_date = request.GET['registration_date']
     username = request.GET['user']
@@ -176,7 +176,7 @@ def files_search(request):
 
 
 @login_required
-@permission_required('base.is_administrator', raise_exception=True)
+@user_passes_test(lambda u: (u.is_staff and u.has_perm('base.is_administrator')) or u.is_superuser)
 def document_file_read(request, document_file_id):
     document_file = mdl.document_file.find_by_id(document_file_id)
     return layout.render(request, "admin/file.html", {'file': document_file})
