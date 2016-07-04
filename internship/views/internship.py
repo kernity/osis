@@ -217,30 +217,24 @@ def internships_save(request):
     if request.POST['learning_unit_year']:
         learning_unit_year_list = request.POST.getlist('learning_unit_year')
 
-    if request.POST['preferenceCH']:
-        for pref in request.POST.getlist('preferenceCH'):
-            preference_list.append(pref)
+    all_internships = InternshipOffer.find_internships()
+    all_learning_unit_year = []
+    for choice in all_internships:
+        all_learning_unit_year.append(choice.learning_unit_year)
+    all_learning_unit_year = list(set(all_learning_unit_year))
+    for luy in all_learning_unit_year :
+        tab = luy.title.replace(" ", "")
+        luy.tab = tab
 
-    # Delete the comment when internship in Geriatrie will be imported
-    # if request.POST['preferenceGE']:
-    #    for pref in request.POST.getlist('preferenceGE') :
-    #        preference_list.append(pref)
+    preference_list_tab = []
+    for luy in all_learning_unit_year:
+        preference_list_tab.append('preference'+luy.tab)
 
-    if request.POST['preferenceGO']:
-        for pref in request.POST.getlist('preferenceGO'):
-            preference_list.append(pref)
-
-    if request.POST['preferenceMI']:
-        for pref in request.POST.getlist('preferenceMI'):
-            preference_list.append(pref)
-
-    if request.POST['preferencePE']:
-        for pref in request.POST.getlist('preferencePE'):
-            preference_list.append(pref)
-
-    if request.POST['preferenceUR']:
-        for pref in request.POST.getlist('preferenceUR'):
-            preference_list.append(pref)
+    preference_list= list()
+    for pref_tab in preference_list_tab:
+        if request.POST[pref_tab]:
+            for pref in request.POST.getlist(pref_tab) :
+                preference_list.append(pref)
 
     index = 0
     for r in preference_list:
