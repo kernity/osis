@@ -25,7 +25,12 @@
 ##############################################################################
 from django.db import models
 from base.models import offer
+from django.contrib import admin
 from . import adviser
+
+
+class FacultyAdviserAdmin(admin.ModelAdmin):
+    list_display = ('adviser', 'offer')
 
 
 class FacultyAdviser(models.Model):
