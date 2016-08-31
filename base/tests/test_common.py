@@ -29,6 +29,7 @@
 
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 
 class CommonViewTestNoData(TestCase):
@@ -67,40 +68,65 @@ class CommonViewTestNoData(TestCase):
     ]
 
     def setUp(self):
-        pass
+        # Logged a professor
+        user_to_log = User.objects.get(pk=4)  # user philippe
+        self.logged_client = Client()
+        self.logged_client.force_login(user=user_to_log)
 
     def testHome(self):
-        test_accessibility_non_logged_user(self, 'home')
+        name_url = 'home'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url)
 
     def testStudies(self):
-        test_accessibility_non_logged_user(self, 'studies')
+        name_url = 'studies'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url)
 
     def testAssessments(self):
-        test_accessibility_non_logged_user(self, 'assessments')
+        name_url = 'assessments'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url)
 
     def testCatalog(self):
-        test_accessibility_non_logged_user(self, 'catalog')
+        name_url = 'catalog'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url)
 
     def testData(self):
-        test_accessibility_non_logged_user(self, 'data')
+        name_url = 'data'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url, has_perm=False)
 
-    def testdataMaintenance(self):
-        test_accessibility_non_logged_user(self, 'data_maintenance')
+    def testDataMaintenance(self):
+        name_url = 'data_maintenance'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url, has_perm=False)
 
     def testAcademicYear(self):
-        test_accessibility_non_logged_user(self, 'academic_year')
+        name_url = 'academic_year'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url)
 
     def testStorage(self):
-        test_accessibility_non_logged_user(self, 'storage')
+        name_url = 'storage'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url, has_perm=False)
 
     def testFiles(self):
-        test_accessibility_non_logged_user(self, 'files')
+        name_url = 'files'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url, has_perm=False)
 
     def testFilesSearch(self):
-        test_accessibility_non_logged_user(self, 'files_search')
+        name_url = 'files_search'
+        test_accessibility_non_logged_user(self, name_url)
+        test_accessibility_logged_user(self, name_url, has_perm=False)
 
     def testDocumentFileRead(self):
-        test_accessibility_non_logged_user(self, 'document_file_read', args=[1])
+        name_url = 'document_file_read'
+        test_accessibility_non_logged_user(self, name_url, args=[1])
+        test_accessibility_logged_user(self, name_url, args=[1], has_perm=False)
 
 
 def test_accessibility_non_logged_user(instance, request_url, args=None):
@@ -112,12 +138,32 @@ def test_accessibility_non_logged_user(instance, request_url, args=None):
     :param args: arguments to pass to the url (a list)
     :return:
     """
-    c = Client()
+    c = instance.client
 
     response = c.get(reverse(request_url, args=args))
     expected_url = get_login_url(instance, reverse(request_url, args=args))
 
     instance.assertRedirects(response, expected_url)  # check redirection to login url
+
+
+def test_accessibility_logged_user(instance, request_url, has_perm=True, args=None):
+    """
+    Routine to check accessibility to logged user.
+    :param instance: a CommonViewTestNoData class instance
+    :param request_url: url to request
+    :param has_perm: boolean to know if the user has the right to access the url
+    :param args: arguments to pass to the url (a list)
+    :return:
+    """
+    c = instance.logged_client
+
+    response = c.get(reverse(request_url, args=args))
+
+    if not has_perm:    # an access denied should be showed and use of http error code 403 (forbidden)
+        instance.assertTemplateUsed(response, "access_denied.html")
+        instance.assertEquals(403, response.status_code)
+    else:
+        instance.assertEquals(200, response.status_code)
 
 
 def get_login_url(instance, request_url):
