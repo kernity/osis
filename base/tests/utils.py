@@ -28,6 +28,8 @@
 
 from django.core.urlresolvers import reverse
 
+prefix_login_url = "/login/?next="
+
 
 def test_accessibility_non_logged_user(instance, request_url, data=None, args=None):
     """
@@ -76,4 +78,4 @@ def get_login_url(instance, request_url):
     :param request_url: url requested
     :return: the login url corresponding to the requested url
     """
-    return "".join([instance.prefix_login_url, request_url])
+    return "".join([prefix_login_url, request_url])

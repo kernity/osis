@@ -28,13 +28,11 @@
 
 
 from django.test import TestCase, Client
-from django.core.urlresolvers import reverse
 from base.tests.utils import test_accessibility_logged_user, test_accessibility_non_logged_user
 from django.contrib.auth.models import User
 
 
 class CommonViewTestNoData(TestCase):
-    prefix_login_url = "/login/?next="
     fixtures = [
         'user.json',
         'person.json',

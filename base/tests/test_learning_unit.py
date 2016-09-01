@@ -32,7 +32,7 @@ from base.tests.utils import test_accessibility_logged_user, test_accessibility_
 from django.contrib.auth.models import User
 
 
-class OfferViewTestNoData(TestCase):
+class InstitutionViewTestNoData(TestCase):
     fixtures = [
         'user.json',
         'person.json',
@@ -72,39 +72,17 @@ class OfferViewTestNoData(TestCase):
         self.logged_client = Client()
         self.logged_client.force_login(user=user_to_log)
 
-    def testOffers(self):
-        name_url = 'offers'
+    def testLearningUnits(self):
+        name_url = 'learning_units'
         test_accessibility_non_logged_user(self, name_url)
         test_accessibility_logged_user(self, name_url)
 
-    def testOffersSearch(self):
-        name_url = 'offers_search'
-        test_accessibility_non_logged_user(self, name_url, data={'entity_acronym': '', 'academic_year': '1',
-                                                             'code': ''})
-        test_accessibility_logged_user(self, name_url, data={'entity_acronym': '', 'academic_year': '1',
-                                                             'code': ''})
+    def testLearningUnitsSearch(self):
+        name_url = 'learning_units_search'
+        test_accessibility_non_logged_user(self, name_url, data={'academic_year': '1', 'code': ''})
+        test_accessibility_logged_user(self, name_url, data={'academic_year': '1', 'code': ''})
 
-    def testOfferRead(self):
-        name_url = 'offer_read'
-        test_accessibility_non_logged_user(self, name_url, args=[1])
-        test_accessibility_logged_user(self, name_url, args=[1])
-
-    def testScoreEncoding(self):
-        name_url = 'offer_score_encoding'
-        test_accessibility_non_logged_user(self, name_url, args=[1])
-        test_accessibility_logged_user(self, name_url, args=[1])
-
-    def testOfferYearCalendarRead(self):
-        name_url = 'offer_year_calendar_read'
-        test_accessibility_non_logged_user(self, name_url, args=[1])
-        test_accessibility_logged_user(self, name_url, args=[1])
-
-    def testOfferYearCalendarSave(self):
-        name_url = 'offer_year_calendar_save'
-        test_accessibility_non_logged_user(self, name_url, args=[1])
-        test_accessibility_logged_user(self, name_url, args=[1])
-
-    def testOfferYearCalendarEdit(self):
-        name_url = 'offer_year_calendar_edit'
+    def testLearningUnitRead(self):
+        name_url = 'learning_unit_read'
         test_accessibility_non_logged_user(self, name_url, args=[1])
         test_accessibility_logged_user(self, name_url, args=[1])
