@@ -29,6 +29,7 @@
 
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
+from base.tests.utils import test_accessibility_logged_user, test_accessibility_non_logged_user
 from django.contrib.auth.models import User
 
 
@@ -109,53 +110,3 @@ class OfferViewTestNoData(TestCase):
         name_url = 'offer_year_calendar_edit'
         test_accessibility_non_logged_user(self, name_url, args=[1])
         test_accessibility_logged_user(self, name_url, args=[1])
-
-
-def test_accessibility_non_logged_user(instance, request_url, data=None, args=None):
-    """
-    Routine to check accessibility to non logged user.
-    A non logged user should be redirected to the login page.
-    :param instance: a CommonViewTestNoData class instance
-    :param request_url: url to request
-    :param data: key-value pair for get request
-    :param args: arguments to pass to the url (a list)
-    :return:
-    """
-    c = instance.client
-
-    response = c.get(reverse(request_url, args=args), data=data)
-    expected_url = get_login_url(instance, reverse(request_url, args=args))  # TODO check if data is comprised
-
-    instance.assertRedirects(response, expected_url)  # check redirection to login url
-
-
-def test_accessibility_logged_user(instance, request_url, data=None, has_perm=True, args=None):
-    """
-    Routine to check accessibility to logged user.
-    :param instance: a CommonViewTestNoData class instance
-    :param request_url: url to request
-    :param data: key-value pair for get request
-    :param has_perm: boolean to know if the user has the right to access the url
-    :param args: arguments to pass to the url (a list)
-    :return:
-    """
-    c = instance.logged_client
-
-    response = c.get(reverse(request_url, args=args), data=data)
-
-    if not has_perm:    # an access denied should be showed and use of http error code 403 (forbidden)
-        instance.assertTemplateUsed(response, "access_denied.html")
-        instance.assertEquals(403, response.status_code)
-    else:
-        instance.assertEquals(200, response.status_code)
-
-
-def get_login_url(instance, request_url):
-    """
-    Return the login url which is of the form:
-    /login/?next=request_url
-    :param instance: a CommonViewTestNoData class instance
-    :param request_url: url requested
-    :return: the login url corresponding to the requested url
-    """
-    return "".join([instance.prefix_login_url, request_url])

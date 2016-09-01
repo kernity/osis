@@ -33,7 +33,7 @@ from base.tests.utils import test_accessibility_logged_user, test_accessibility_
 from django.contrib.auth.models import User
 
 
-class CommonViewTestNoData(TestCase):
+class InstitutionViewTestNoData(TestCase):
     prefix_login_url = "/login/?next="
     fixtures = [
         'user.json',
@@ -74,57 +74,39 @@ class CommonViewTestNoData(TestCase):
         self.logged_client = Client()
         self.logged_client.force_login(user=user_to_log)
 
-    def testHome(self):
-        name_url = 'home'
+    def testInstitution(self):
+        name_url = 'institution'
         test_accessibility_non_logged_user(self, name_url)
         test_accessibility_logged_user(self, name_url)
 
-    def testStudies(self):
-        name_url = 'studies'
+    def testMandates(self):
+        name_url = 'mandates'
         test_accessibility_non_logged_user(self, name_url)
         test_accessibility_logged_user(self, name_url)
 
-    def testAssessments(self):
-        name_url = 'assessments'
+    def testStructures(self):
+        name_url = 'structures'
         test_accessibility_non_logged_user(self, name_url)
         test_accessibility_logged_user(self, name_url)
 
-    def testCatalog(self):
-        name_url = 'catalog'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url)
+    def testStructuresSearch(self):
+        name_url = 'structures_search'
+        test_accessibility_non_logged_user(self, name_url, data={'type_choices': '', 'acronym': 'OSIS',
+                                                                 'title': ''})
+        test_accessibility_logged_user(self, name_url, data={'type_choices': '', 'acronym': 'OSIS',
+                                                             'title': ''})
 
-    def testData(self):
-        name_url = 'data'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url, has_perm=False)
-
-    def testDataMaintenance(self):
-        name_url = 'data_maintenance'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url, has_perm=False)
-
-    def testAcademicYear(self):
-        name_url = 'academic_year'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url)
-
-    def testStorage(self):
-        name_url = 'storage'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url, has_perm=False)
-
-    def testFiles(self):
-        name_url = 'files'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url, has_perm=False)
-
-    def testFilesSearch(self):
-        name_url = 'files_search'
-        test_accessibility_non_logged_user(self, name_url)
-        test_accessibility_logged_user(self, name_url, has_perm=False)
-
-    def testDocumentFileRead(self):
-        name_url = 'document_file_read'
+    def testStructureRead(self):
+        name_url = 'structure_read'
         test_accessibility_non_logged_user(self, name_url, args=[1])
-        test_accessibility_logged_user(self, name_url, args=[1], has_perm=False)
+        test_accessibility_logged_user(self, name_url, args=[1])
+
+    def testStructureDiagram(self):
+        name_url = 'structure_diagram'
+        test_accessibility_non_logged_user(self, name_url, args=[1])
+        test_accessibility_logged_user(self, name_url, args=[1])
+
+    def testStructureAddress(self):
+        name_url = 'structure_address'
+        test_accessibility_non_logged_user(self, name_url, args=[1])
+        test_accessibility_logged_user(self, name_url, args=[1])
