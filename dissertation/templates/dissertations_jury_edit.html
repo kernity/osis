@@ -29,32 +29,35 @@
 {% block breadcrumb %}
   <li><a href="{% url 'studies' %}" id="lnk_studies">{% trans 'student_path' %}</a></li>
   <li><a href="{% url 'dissertations' %}" id="lnk_dissertations">{% trans 'dissertations' %}</a></li>
-  <li class="active">{% trans 'parameters' %}</li>
+  <li><a href="{% url 'dissertations_list' %}" id="lnk_dissertations_list">{% trans 'dissertations' %}</a></li>
+  <li><a href="{% url 'dissertations_detail' pk=dissert.pk %}" id="lnk_dissertations_detail">
+      {{ dissert.title|truncatechars:24 }}
+  </a></li>
+  <li class="active">{% trans 'new_jury_dissertation' %}</li>
 {% endblock %}
 {% block content %}
   <div class="page-header">
-    <h2>{% trans 'parameters' %}</h2>
+    <h2>{% trans 'new_jury_dissertation' %}</h2>
   </div>
   <div class="panel panel-default">
     <div class="panel-body">
-      <table class="table table-hover">
-        <tr>
-          <th style="text-align:center">{% trans 'offer_proposition'%}</th>
-          <th style="text-align:center">{% trans 'student_can_manage_readers'%}</th>
-          <th style="text-align:center">{% trans 'adviser_can_suggest_reader'%}</th>
-          <th style="text-align:center">{% trans 'evaluation_first_year'%}</th>
-          <th style="text-align:center">{% trans 'validation_commission_exists'%}</th>
-        </tr>
-        {% for offer_proposition in offer_propositions %}
-          <tr>
-            <td style="text-align:center"><a href="{% url 'manager_offer_parameters_detail' pk=offer_proposition.pk %}">{{ offer_proposition.acronym }}</a></td>
-            <td style="text-align:center">{{ offer_proposition.student_can_manage_readers|yesno:"Yes,No" }}</td>
-            <td style="text-align:center">{{ offer_proposition.adviser_can_suggest_reader|yesno:"Yes,No" }}</td>
-            <td style="text-align:center">{{ offer_proposition.evaluation_first_year|yesno:"Yes,No" }}</td>
-            <td style="text-align:center">{{ offer_proposition.validation_commission_exists|yesno:"Yes,No" }}</td>
-          </tr>
+      <form method="POST" class="post-form">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="row {% if field.errors %}error{% endif %}">
+            <div class="col-md-4" style="text-align: right">
+              {% if not field.is_hidden %}
+                <label>{{ field.label }}</label>
+              {% endif %}
+            </div>
+            <div class="col-md-5">
+              {{ field }}
+            </div>
+          </div>
+          <br>
         {% endfor %}
-      </table>
-      </div>
+        <button type="submit" class="save btn btn-default">Save</button>
+      </form>
     </div>
+  </div>
 {% endblock %}
