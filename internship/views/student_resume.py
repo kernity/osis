@@ -123,7 +123,7 @@ def internships_student_read(request, registration_id):
     organizations = Organization.search()
     set_organization_address(organizations)
 
-    # Set the adress of the affactation
+    # Set the adress of the affectation
     for affectation in affectations:
         for organization in organizations:
             if affectation.organization == organization:
@@ -142,12 +142,21 @@ def internships_student_read(request, registration_id):
     else:
         selectable = True
 
+    if len(affectations) > 0:
+        if affectations[0].visible:
+            visible = True
+        else:
+            visible = False
+    else:
+        visible = False
+
     return render(request, "student_resume.html",
                            {'student': student,
                             'information': information[0],
                             'internship_choice': internship_choice,
                             'specialities': all_speciality,
                             'selectable': selectable,
+                            'visible"': visible,
                             'affectations': affectations,
                             'periods': periods,
                             })
