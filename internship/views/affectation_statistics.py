@@ -1233,3 +1233,19 @@ def internship_affectation_sumup(request):
                    'organizations': informations,
                    'affectations': affectations,
                    })
+
+
+@login_required
+@permission_required('internship.is_internship_manager', raise_exception=True)
+def display_affectations(request):
+    affectations = InternshipStudentAffectationStat.search()
+    if affectations:
+        # Get the value of the first affectation in the DB
+        affectation_visible = affectations[0].visible
+    # For each affectation in the DB invert the selectable flag of the first affectation
+
+    for affectation in affectations:
+        edit_affectation = InternshipStudentAffectationStat.find_by_id(affectation.id)
+        edit_affectation.visible = not affectation_visible
+        edit_affectation.save()
+    return HttpResponseRedirect(reverse('internships_home'))

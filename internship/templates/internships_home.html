@@ -103,16 +103,37 @@
                     {%endif%}
                 </div>
                 <br>
-            {% if false %}
                 <div class="row">
+                {% if false %}
                     <div class="col-md-1"><i class="fa fa-calendar-check-o" style="font-size: 400%; color: #6699FF;"></i></div>
                     <div class="col-md-5">
                         <h4 class="media-heading"><a href="{% url 'internship_affectation_sumup' %}">{% trans 'assignations_sumup' %}</a></h4>
                     </div>
-
+                {% endif %}
+                    {% if affectation_visible %}
+                        <div class="col-md-1"><i class="fa fa-check-square" style="font-size: 400%; color: #6699FF;"></i></div>
+                        <div class="col-md-5">
+                            {% trans 'affectation_are_visible' %}<br/>
+                            <a href="{% url 'display_affectations' %}">
+                                <button type="submit" class="btn btn-warning" title="{% trans 'block'%}">
+                                    {% trans 'mask_affectation' %}
+                                </button>
+                            </a>
+                        </div>
+                    {%else%}
+                        <div class="col-md-1"><i class="fa fa-times-circle" style="font-size: 400%; color: #FF6666;"></i></div>
+                        <div class="col-md-5">
+                            {% trans 'affectation_arent_visible' %}<br/>
+                            <a href="{% url 'display_affectations' %}">
+                                <button type="submit" class="btn btn-warning" title="{% trans 'activate'%}">
+                                    {% trans 'display_affectation' %}
+                                </button>
+                            </a>
+                        </div>
+                    {%endif%}
                 </div>
                 <br>
-            {% endif %}
+
             </div>
         </div>
     {% else %}
