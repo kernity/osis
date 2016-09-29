@@ -486,7 +486,10 @@ def internships_block(request):
     if internships:
         #Get the value of the first internship in the DB
         internship_selectable = internships[0].selectable
-    # For each internship in the DB invert the selectable flag
+    # For each internship in the DB invert the selectable flag of the first internship
+    # Explanation : when there is new internship(s) in the DB, there are selectable by default
+    # So when then inversion of the flag is done, there are some incoherences with flag True and False.
+    # With that way, all the internships will have the same flag
     for internship in internships:
         edit_internship = InternshipOffer.find_intership_by_id(internship.id)
         edit_internship.selectable = not internship_selectable
