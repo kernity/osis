@@ -113,20 +113,20 @@
                     {% if affectation_visible %}
                         <div class="col-md-1"><i class="fa fa-check-square" style="font-size: 400%; color: #6699FF;"></i></div>
                         <div class="col-md-5">
-                            {% trans 'affectation_are_visible' %}<br/>
+                            {% trans 'assignations_are_visible' %}<br/>
                             <a href="{% url 'display_affectations' %}">
                                 <button type="submit" class="btn btn-warning" title="{% trans 'block'%}">
-                                    {% trans 'mask_affectation' %}
+                                    {% trans 'mask_assignations' %}
                                 </button>
                             </a>
                         </div>
                     {%else%}
                         <div class="col-md-1"><i class="fa fa-times-circle" style="font-size: 400%; color: #FF6666;"></i></div>
                         <div class="col-md-5">
-                            {% trans 'affectation_arent_visible' %}<br/>
+                            {% trans 'assignations_arent_visible' %}<br/>
                             <a href="{% url 'display_affectations' %}">
                                 <button type="submit" class="btn btn-warning" title="{% trans 'activate'%}">
-                                    {% trans 'display_affectation' %}
+                                    {% trans 'display_assignations' %}
                                 </button>
                             </a>
                         </div>
