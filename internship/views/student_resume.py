@@ -219,6 +219,13 @@ def student_save_affectation_modification(request, registration_id):
     if request.POST.get('speciality'):
         speciality_list = request.POST.getlist('speciality')
 
+    # Get the all affectations, if there is an affectation, set the visible flag at the same value
+    # If there is no affectation, the affectation aren't visible
+    affectations = InternshipStudentAffectationStat.search()
+    visible = False
+    if affectations :
+        visible = affectations[0].visible
+
     InternshipStudentAffectationStat.search(student=student).delete()
     index = len(period_list)
     for x in range(0,index):
@@ -250,6 +257,7 @@ def student_save_affectation_modification(request, registration_id):
                 affectation_modif.choice="I"
                 affectation_modif.cost = 10
 
+            affectation_modif.visible = visible
             affectation_modif.save()
     redirect_url = reverse('internships_student_read', args=[student.registration_id])
     return HttpResponseRedirect(redirect_url)
