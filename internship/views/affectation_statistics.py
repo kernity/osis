@@ -1182,7 +1182,9 @@ def internship_affectation_statistics(request):
     sol, table, stats, internship_errors = None, None, None, None
     data = InternshipStudentAffectationStat.objects.all().select_related("student", "organization", "speciality",
                                                                          "period")
+    visible = False
     if len(data) > 0:
+        visible = data[0].visible
         sol, table = load_solution(data)
         stats = compute_stats(sol)
         # Mange sort of the students
@@ -1195,7 +1197,8 @@ def internship_affectation_statistics(request):
                    'recap_sol': sol,
                    'stats': stats,
                    'organizations': table,
-                   'errors': internship_errors})
+                   'errors': internship_errors,
+                   'visible': visible})
 
 
 @login_required
