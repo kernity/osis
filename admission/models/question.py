@@ -25,7 +25,8 @@
 ##############################################################################
 from django.db import models
 from django.contrib import admin
-from django.utils.translation import ugettext_lazy as _
+from admission.enums import question_types
+from base.models.serializable_model import SerializableModel
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -33,24 +34,12 @@ class QuestionAdmin(admin.ModelAdmin):
     fieldsets = ((None, {'fields': ('label', 'description', 'type', 'order', 'required', 'form')}),)
 
 
-class Question(models.Model):
-
-    QUESTION_TYPES = (
-        ('LABEL', _('Label')),
-        ('SHORT_INPUT_TEXT', _('Short input text')),
-        ('LONG_INPUT_TEXT', _('Long input text')),
-        ('RADIO_BUTTTON', _('Radio button')),
-        ('CHECKBOX', _('Checkbox')),
-        ('DROPDOWN_LIST', _('Dropdown list')),
-        ('UPLOAD_BUTTON', _('Upload button')),
-        ('DOWNLOAD_LINK', _('Download link')),
-        ('HTTP_LINK', _('HTTP link'))
-    )
+class Question(SerializableModel):
 
     form = models.ForeignKey('Form')
     label = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    type = models.CharField(max_length=20, choices=question_types.QUESTION_TYPES)
     order = models.IntegerField(blank=True, null=True)
     required = models.BooleanField(default=False)
 

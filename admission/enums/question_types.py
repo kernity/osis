@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# OSIS stands for Open Student Information System. It's an application
+#    OSIS stands for Open Student Information System. It's an application
 #    designed to manage the core business of higher education institutions,
 #    such as universities, faculties, institutes and professional schools.
 #    The core business involves the administration of students, teachers,
@@ -23,22 +23,25 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.db import models
-from django.contrib import admin
-from base.models.serializable_model import SerializableModel
+LABEL = "LABEL"
+SHORT_INPUT_TEXT = "SHORT_INPUT_TEXT"
+LONG_INPUT_TEXT = "LONG_INPUT_TEXT"
+RADIO_BUTTON = "RADIO_BUTTON"
+CHECKBOX = "CHECKBOX"
+DROPDOWN_LIST = "DROPDOWN_LIST"
+UPLOAD_BUTTON = "UPLOAD_BUTTON"
+DOWNLOAD_LINK = "DOWNLOAD_LINK"
+HTTP_LINK = "HTTP_LINK"
 
 
-class OptionAdmin(admin.ModelAdmin):
-    list_display = ('question', 'label', 'description')
-    fieldsets = ((None, {'fields': ('label', 'value', 'order', 'description', 'question')}),)
-
-
-class Option(SerializableModel):
-    question = models.ForeignKey('Question')
-    label = models.CharField(max_length=255)
-    value = models.TextField(blank=True, null=True)
-    order = models.IntegerField(blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return u"%s" % self.label
+QUESTION_TYPES = (
+    (LABEL, _(LABEL)),
+    (SHORT_INPUT_TEXT, _(SHORT_INPUT_TEXT)),
+    (LONG_INPUT_TEXT, _(LONG_INPUT_TEXT)),
+    (RADIO_BUTTON, _(RADIO_BUTTON)),
+    (CHECKBOX, _(CHECKBOX)),
+    (DROPDOWN_LIST, _(DROPDOWN_LIST)),
+    (UPLOAD_BUTTON, _(UPLOAD_BUTTON)),
+    (DOWNLOAD_LINK, _(DOWNLOAD_LINK)),
+    (HTTP_LINK, _(HTTP_LINK))
+)
