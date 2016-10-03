@@ -23,6 +23,7 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
+from django.utils.translation import ugettext_lazy as _
 LABEL = "LABEL"
 SHORT_INPUT_TEXT = "SHORT_INPUT_TEXT"
 LONG_INPUT_TEXT = "LONG_INPUT_TEXT"
