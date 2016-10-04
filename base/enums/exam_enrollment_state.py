@@ -23,16 +23,13 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.apps import AppConfig
+
+from django.utils.translation import ugettext_lazy as _
 
 
-class BaseConfig(AppConfig):
-    name = 'base'
+ENROLLED = "ENROLLED"
+NOT_ENROLLED = "NOT_ENROLLED"
 
-    def ready(self):
-        from base.models.models_signals import add_to_tutors_group, remove_from_tutor_group, \
-            add_to_pgm_managers_group, remove_from_pgm_managers_group, \
-            add_to_students_group, remove_from_student_group
-        from base.views.score_encoding import get_json_data_scores_sheets
-        # if django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
-        # ===> This exception says that there is an error in the implementation of method ready(self) !!
+STATES = (
+    (ENROLLED, _('ENROLLED')),
+    (NOT_ENROLLED, _('NOT_ENROLLED')))
