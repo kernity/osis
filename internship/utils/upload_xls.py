@@ -288,24 +288,31 @@ def __save_xls_masters(request, file_name, user):
                 reference = ""
                 check_reference = row[col_organization_reference].value.strip(' ')
                 if check_reference != "":
-                    if check_reference[0][0] != "0":
-                        if int(check_reference) < 10 :
-                            reference = "0"+str(check_reference)
+                    if _is_registration_id( row[col_organization_reference].value):
+                        if check_reference[0][0] != "0":
+                            if int(check_reference) < 10 :
+                                reference = "0"+str(check_reference)
+                            else :
+                                reference = str(check_reference)
                         else :
                             reference = str(check_reference)
-                    else :
-                        reference = str(check_reference)
 
-                    organization = Organization.search(reference=reference)
-                    if organization:
-                        master.organization = organization[0]
+                        organization = Organization.search(reference=reference)
+                        if organization:
+                            master.organization = organization[0]
+                        else:
+                            master.organization = None
+                            messages.add_message(request, messages.WARNING, '%s : %s - %s %s (%s %s).' % \
+                            (_('no_organization_existing_reference'),reference, \
+                            row[col_firstname].value, row[col_lastname].value,_('line') , count+1))
                     else:
-                        master.organization = None
                         messages.add_message(request, messages.WARNING, '%s : %s - %s %s (%s %s).' % \
-                        (_('no_organization_existing_reference'),reference, \
+                        (_('no_organization_existing_reference'),row[col_organization_reference].value, \
                         row[col_firstname].value, row[col_lastname].value,_('line') , count+1))
+                        master.organization = None
                 else :
                     master.organization = None
+
             if row[col_firstname].value:
                 master.first_name = row[col_firstname].value
             else :
