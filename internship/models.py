@@ -120,7 +120,7 @@ class InternshipMaster(models.Model):
 
     @staticmethod
     def find_masters():
-        return InternshipMaster.objects.all().select_related("organization")
+        return InternshipMaster.objects.all().select_related("organization").order_by("last_name", "first_name")
 
     def __str__(self):
         return u"%s" % (self.reference)
@@ -128,7 +128,7 @@ class InternshipMaster(models.Model):
     @staticmethod
     def search(**kwargs):
         kwargs = {k: v for k, v in kwargs.items() if v}
-        queryset = InternshipMaster.objects.filter(**kwargs).select_related("organization")
+        queryset = InternshipMaster.objects.filter(**kwargs).select_related("organization").order_by("last_name", "first_name")
         return queryset
 
 
