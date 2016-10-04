@@ -236,6 +236,9 @@ def __save_xls_internships(request, file_name, user):
                         else :
                             relation.number_places = int(row[x].value)
                         relation.save()
+            else :
+                messages.add_message(request, messages.WARNING, '%s : %s (%s %s).' % \
+                (_('no_organization_existing_reference'),row[col_reference].value, _('line') , count+1))
 
 @login_required
 def upload_masters_file(request):
@@ -294,7 +297,13 @@ def __save_xls_masters(request, file_name, user):
                         reference = str(check_reference)
 
                     organization = Organization.search(reference=reference)
-                    master.organization = organization[0]
+                    if organization:
+                        master.organization = organization[0]
+                    else:
+                        master.organization = None
+                        messages.add_message(request, messages.WARNING, '%s : %s - %s %s (%s %s).' % \
+                        (_('no_organization_existing_reference'),reference, \
+                        row[col_firstname].value, row[col_lastname].value,_('line') , count+1))
                 else :
                     master.organization = None
             if row[col_firstname].value:
