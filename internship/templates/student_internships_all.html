@@ -63,12 +63,8 @@
                       <td>{{ student.registration_id }}</td>
                       <td>{{ student.person.last_name }}</td>
                       <td>{{ student.person.first_name }}</td>
-                      <td>
-
-                      </td>
-                      <td>
-
-                      </td>
+                      <td>{{ student.location }} {{ student.postal_code }} {{ student.city }} ({{ student.country }})</td>
+                      <td>{{ student.phone_mobile }}</td>
                   </tr>
                   {% endfor %}
               </table>
