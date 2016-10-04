@@ -302,7 +302,7 @@ def student_affectation(request, organization_id):
 def export_xls(request, organization_id, speciality_id):
     organization = Organization.find_by_id(organization_id)
     speciality = InternshipSpeciality.find_by_id(speciality_id)
-    affectations = InternshipStudentAffectationStat.search(organization=organization, speciality=speciality)
+    affectations = InternshipStudentAffectationStat.search(organization=organization, speciality__acronym=speciality.acronym)
 
     for a in affectations:
         a.email = ""
@@ -323,7 +323,7 @@ def export_xls(request, organization_id, speciality_id):
 def export_pdf(request, organization_id, speciality_id):
     organization = Organization.find_by_id(organization_id)
     speciality = InternshipSpeciality.find_by_id(speciality_id)
-    affectations = InternshipStudentAffectationStat.search(organization=organization, speciality=speciality)
+    affectations = InternshipStudentAffectationStat.search(organization=organization, speciality__acronym=speciality.acronym)
 
     for a in affectations:
         a.email = ""
