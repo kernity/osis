@@ -98,25 +98,20 @@ class InternshipEnrollment(models.Model):
 
 
 class InternshipMaster(models.Model):
-    CIVILITY_CHOICE = (('PROFESSOR',_('Professor')),
-                       ('DOCTOR',_('Doctor')))
-    TYPE_CHOICE = (('SPECIALIST',_('Specialist')),
-                   ('GENERALIST',_('Generalist')))
-    SPECIALITY_CHOICE = (('INTERNAL_MEDICINE',_('Internal Medicine')),
-                         ('SURGERY',_('Surgery')),
-                         ('GYNEC_OBSTETRICS',_('Gynec-Obstetrics')),
-                         ('PEDIATRICS',_('Pediatrics')),
-                         ('EMERGENCY',_('Emergency')),
-                         ('GERIATRICS',_('Geriatrics')))
-
-    organization     = models.ForeignKey('internship.Organization', null=True)
-    #internship_offer = models.ForeignKey(InternshipOffer)
     first_name = models.CharField(max_length=50, blank=True, null=True, db_index=True)
     last_name = models.CharField(max_length=50, blank=True, null=True, db_index=True)
-    reference = models.CharField(max_length=50, blank=True, null=True)
     civility = models.CharField(max_length=50, blank=True, null=True)
-    type_mastery = models.CharField(max_length=50, blank=True, null=True)
+    sexe = models.CharField(max_length=50, blank=True, null=True)
     speciality = models.CharField(max_length=50, blank=True, null=True)
+    organization = models.ForeignKey('internship.Organization', null=True)
+    birth_date = models.DateField(blank=True, null=True)
+    email_professionnal = models.CharField(max_length=255, blank=True, null=True)
+    email_private = models.CharField(max_length=255, blank=True, null=True)
+    phone_professionnal = models.CharField(max_length=50, blank=True, null=True)
+    phone_private = models.CharField(max_length=50, blank=True, null=True)
+    cremec = models.CharField(max_length=50, blank=True, null=True)
+    date_start_activity = models.DateField(blank=True, null=True)
+    date_end_activity = models.DateField(blank=True, null=True)
 
     @staticmethod
     def find_masters():

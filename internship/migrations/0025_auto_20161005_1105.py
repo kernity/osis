@@ -22,4 +22,57 @@ class Migration(migrations.Migration):
             name='internship_master',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='internship.InternshipMaster'),
         ),
+        migrations.RemoveField(
+            model_name='internshipmaster',
+            name='reference',
+        ),
+        migrations.RemoveField(
+            model_name='internshipmaster',
+            name='type_mastery',
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='birth_date',
+            field=models.DateField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='cremec',
+            field=models.CharField(blank=True, max_length=50, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='date_end_activity',
+            field=models.DateField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='date_start_activity',
+            field=models.DateField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='email_private',
+            field=models.CharField(blank=True, max_length=255, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='email_professionnal',
+            field=models.CharField(blank=True, max_length=255, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='phone_private',
+            field=models.CharField(blank=True, max_length=50, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='phone_professionnal',
+            field=models.CharField(blank=True, max_length=50, null=True),
+        ),
+        migrations.AddField(
+            model_name='internshipmaster',
+            name='sexe',
+            field=models.CharField(blank=True, max_length=50, null=True),
+        ),
     ]
