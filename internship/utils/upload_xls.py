@@ -190,10 +190,17 @@ def __save_xls_internships(request, file_name, user):
                 spec_value = row[col_spec].value
                 spec_value = spec_value.replace(" ","")
                 spec_value = spec_value.replace("*","")
-
-                master_value = row[col_master].value
-
                 speciality = InternshipSpeciality.search(acronym__icontains=spec_value)
+
+                master_value = None
+                masters = InternshipMaster.search(organization=organization)
+                for master in masters:
+                    if master.speciality.lower() in speciality[0].name.lower():
+                        master_value = master
+
+                if not master_value :
+                    messages.add_message(request, messages.WARNING, '%s (%s %s).' % \
+                    (_('no_master_existing'), _('line') , count+1))
 
                 number_place = 0
                 for x in range (3,15):
@@ -213,7 +220,7 @@ def __save_xls_internships(request, file_name, user):
                     internship.speciality = speciality[x]
                     internship.title = speciality[x].name
                     internship.maximum_enrollments = number_place
-                    internship.master = master_value
+                    internship.internship_master = master_value
                     internship.selectable = True
                     internship.save()
 
