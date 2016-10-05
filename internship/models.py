@@ -37,7 +37,7 @@ class InternshipOffer(models.Model):
     speciality          = models.ForeignKey('internship.InternshipSpeciality',null=True)
     title = models.CharField(max_length=255)
     maximum_enrollments = models.IntegerField()
-    master              = models.CharField(max_length=100, blank=True, null=True)
+    internship_master   = models.ForeignKey('internship.InternshipMaster', null=True)
     selectable          = models.BooleanField(default=True)
 
     def __str__(self):
@@ -123,7 +123,7 @@ class InternshipMaster(models.Model):
         return InternshipMaster.objects.all().select_related("organization").order_by("last_name", "first_name")
 
     def __str__(self):
-        return u"%s" % (self.reference)
+        return u"%s %s" % (self.civility, self.last_name)
 
     @staticmethod
     def search(**kwargs):
