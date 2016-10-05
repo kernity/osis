@@ -264,14 +264,20 @@ def __save_xls_masters(request, file_name, user):
     workbook = load_workbook(file_name, read_only=True)
     worksheet = workbook.active
 
-    col_reference = 2
-    col_firstname = 3
-    col_lastname = 4
-    col_mail = 7
-    col_organization_reference = 6
-    col_civility = 0
-    col_mastery = 1
+    col_lastname = 1
+    col_firstname = 2
+    col_civility = 3
+    col_sexe = 4
     col_speciality = 5
+    col_organization_reference = 6
+    col_birht_date = 7
+    col_mail_pro = 8
+    col_mail_private = 9
+    col_phone_pro = 10
+    col_phone_private = 11
+    col_CREMEC = 12
+    col_date_start_activity = 13
+    col_date_end_activity = 14
 
     # Iterates over the lines of the spreadsheet.
     for count, row in enumerate(worksheet.rows):
@@ -320,34 +326,69 @@ def __save_xls_masters(request, file_name, user):
                 else :
                     master.organization = None
 
-            if row[col_firstname].value:
-                master.first_name = row[col_firstname].value
-            else :
-                master.first_name = " "
-
             if row[col_lastname].value:
                 master.last_name = row[col_lastname].value
             else :
                 master.last_name = " "
 
-            if row[col_reference].value:
-                master.reference = row[col_reference].value
-            else:
-                master.reference = " "
+            if row[col_firstname].value:
+                master.first_name = row[col_firstname].value
+            else :
+                master.first_name = " "
 
             if row[col_civility].value:
                 master.civility = row[col_civility].value
-            else:
+            else :
                 master.civility = " "
 
-            if row[col_mastery].value:
-                master.type_mastery = row[col_mastery].value
-            else:
-                master.type_mastery = " "
+            if row[col_sexe].value:
+                master.sexe = row[col_sexe].value
+            else :
+                master.sexe = " "
 
             if row[col_speciality].value:
                 master.speciality = row[col_speciality].value
-            else:
+            else :
                 master.speciality = " "
+
+            if row[col_birht_date].value:
+                master.birth_date = row[col_birht_date].value
+            else :
+                master.birth_date = " "
+
+            if row[col_mail_pro].value:
+                master.email_professionnal = row[col_mail_pro].value
+            else :
+                master.email_professionnal = " "
+
+            if row[col_mail_private].value:
+                master.email_private = row[col_mail_private].value
+            else :
+                master.email_private = " "
+
+            if row[col_phone_pro].value:
+                master.phone_professionnal = row[col_phone_pro].value
+            else :
+                master.phone_professionnal = " "
+
+            if row[col_phone_private].value:
+                master.phone_private = row[col_phone_private].value
+            else :
+                master.phone_private = " "
+
+            if row[col_CREMEC].value:
+                master.cremec = row[col_CREMEC].value
+            else :
+                master.cremec = " "
+
+            if row[col_date_start_activity].value:
+                master.date_start_activity = row[col_date_start_activity].value
+            else :
+                master.date_start_activity = " "
+
+            if row[col_date_end_activity].value:
+                master.date_end_activity = row[col_date_end_activity].value
+            else :
+                master.date_end_activity = " "
 
             master.save()
