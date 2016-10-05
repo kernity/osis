@@ -294,6 +294,7 @@ def student_affectation(request, organization_id):
                                                              'affectations': affectations,
                                                              'specialities': all_speciality,
                                                              'periods': periods,
+                                                             'internships':internships,
                                                              })
 
 
