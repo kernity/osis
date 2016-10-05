@@ -53,6 +53,7 @@ def export_xls(organization_id, affectations):
 
         workbook = Workbook()
         worksheet = workbook.active
+        worksheet.orientation='landscape'
         worksheet.title = affectations[0].organization.reference
 
         worksheet.append([str(affectations[0].organization.name)])
@@ -111,6 +112,7 @@ def export_speciality_xls(organization_id, affectations, specialities):
         workbook = Workbook()
         for speciality in specialities:
             worksheet = workbook.create_sheet(title=speciality.acronym)
+            worksheet.orientation='landscape'
             worksheet.append([str(affectations[0].organization.name)])
             worksheet.append([str(speciality.name)])
             worksheet.append([str('')])
