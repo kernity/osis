@@ -62,8 +62,7 @@
         {% else %}
           <div>
             {% if proposition_dissertations|length == 0 %}
-              <br>
-              <label class="alert alert-info" style="margin-left:10%;width:80%;text-align:center;">{% trans 'no_result' %}</label>
+              <p class="alert alert-info" style="margin: 1em; text-align: center;">{% trans 'no_result' %}</p>
             {% else %}
               <table class="table table-hover">
                 <tr>
