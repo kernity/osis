@@ -32,7 +32,7 @@ from django.contrib import admin
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from base.models import offer_year, student, academic_year
+from base.models import offer_year, student
 from . import proposition_dissertation
 from . import offer_proposition
 from . import dissertation_location
@@ -40,7 +40,7 @@ from . import dissertation_location
 
 class DissertationAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'status', 'active', 'proposition_dissertation', 'modification_date')
-    raw_id_fields = ('author', 'offer_year_start')
+    raw_id_fields = ('author', 'offer_year_start', 'proposition_dissertation', 'location')
 
 
 STATUS_CHOICES = (
@@ -154,65 +154,65 @@ def search_by_offer_and_status(offers, status):
     return search_by_offer(offers).filter(status=status)
 
 
-def count_by_proposition(prop_dissert):
+def count_by_proposition(proposition):
     return Dissertation.objects.filter(active=True) \
-        .filter(proposition_dissertation=prop_dissert) \
+        .filter(proposition_dissertation=proposition) \
         .exclude(status='DRAFT') \
         .count()
 
 
-def get_next_status(dissert, operation):
+def get_next_status(dissertation, operation):
     if operation == "go_forward":
-        if dissert.status == 'DRAFT' or dissert.status == 'DIR_KO':
+        if dissertation.status == 'DRAFT' or dissertation.status == 'DIR_KO':
             return 'DIR_SUBMIT'
 
-        elif dissert.status == 'TO_RECEIVE':
+        elif dissertation.status == 'TO_RECEIVE':
             return 'TO_DEFEND'
 
-        elif dissert.status == 'TO_DEFEND':
+        elif dissertation.status == 'TO_DEFEND':
             return 'DEFENDED'
         else:
-            return dissert.status
+            return dissertation.status
 
     elif operation == "accept":
 
-        offer_prop = offer_proposition.get_by_offer(dissert.offer_year_start.offer)
+        offer_prop = offer_proposition.get_by_offer(dissertation.offer_year_start.offer)
 
-        if offer_prop.validation_commission_exists and dissert.status == 'DIR_SUBMIT':
+        if offer_prop.validation_commission_exists and dissertation.status == 'DIR_SUBMIT':
 
             return 'COM_SUBMIT'
 
-        elif offer_prop.evaluation_first_year and (dissert.status == 'DIR_SUBMIT' or
-                                                   dissert.status == 'COM_SUBMIT' or
-                                                   dissert.status == 'COM_KO'):
+        elif offer_prop.evaluation_first_year and (dissertation.status == 'DIR_SUBMIT' or
+                                                   dissertation.status == 'COM_SUBMIT' or
+                                                   dissertation.status == 'COM_KO'):
             return 'EVA_SUBMIT'
 
-        elif dissert.status == 'EVA_SUBMIT' or dissert.status == 'EVA_KO':
+        elif dissertation.status == 'EVA_SUBMIT' or dissertation.status == 'EVA_KO':
             return 'TO_RECEIVE'
 
-        elif dissert.status == 'DEFENDED':
+        elif dissertation.status == 'DEFENDED':
             return 'ENDED_WIN'
 
         else:
             return 'TO_RECEIVE'
 
     elif operation == "refuse":
-        if dissert.status == 'DIR_SUBMIT':
+        if dissertation.status == 'DIR_SUBMIT':
             return 'DIR_KO'
 
-        elif dissert.status == 'COM_SUBMIT':
+        elif dissertation.status == 'COM_SUBMIT':
             return 'COM_KO'
 
-        elif dissert.status == 'EVA_SUBMIT':
+        elif dissertation.status == 'EVA_SUBMIT':
             return 'EVA_KO'
 
-        elif dissert.status == 'DEFENDED':
+        elif dissertation.status == 'DEFENDED':
             return 'ENDED_LOS'
         else:
-            return dissert.status
+            return dissertation.status
 
     else:
-        return dissert.status
+        return dissertation.status
 
 
 def find_by_id(dissertation_id):
