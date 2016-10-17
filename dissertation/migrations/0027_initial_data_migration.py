@@ -5,12 +5,7 @@ from base.models.serializable_model import format_data_for_migration, LOGGER
 import logging
 
 from dissertation.models.adviser import Adviser
-from dissertation.models.dissertation import Dissertation
-from dissertation.models.dissertation_document_file import DissertationDocumentFile
-from dissertation.models.dissertation_group import DissertationGroup
 from dissertation.models.dissertation_location import DissertationLocation
-from dissertation.models.dissertation_role import DissertationRole
-from dissertation.models.dissertation_update import DissertationUpdate
 from dissertation.models.offer_proposition import OfferProposition
 from dissertation.models.proposition_dissertation import PropositionDissertation
 from dissertation.models.proposition_document_file import PropositionDocumentFile
