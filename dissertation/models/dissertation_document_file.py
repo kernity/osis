@@ -23,13 +23,19 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from base.models.serializable_model import SerializableModel
 from django.db import models
+from django.contrib import admin
+from base.models.serializable_model import SerializableModel
+
+
+class DissertationDocumentFileAdmin(admin.ModelAdmin):
+    list_display = ('dissertation', 'document_file')
+    raw_id_fields = ('dissertation', 'document_file')
 
 
 class DissertationDocumentFile(SerializableModel):
     dissertation = models.ForeignKey('Dissertation')
-    document_file = models.ForeignKey('osis_common.documentFile')
+    document_file = models.ForeignKey('osis_common.DocumentFile')
 
     def __str__(self):
         return str(self.dissertation)

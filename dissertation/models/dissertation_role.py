@@ -32,6 +32,7 @@ from django.db.models import Q
 
 class DissertationRoleAdmin(admin.ModelAdmin):
     list_display = ('adviser', 'status', 'dissertation', 'get_dissertation_author', 'get_dissertation_status')
+    raw_id_fields = ('adviser', 'dissertation')
 
 
 class DissertationRole(SerializableModel):
@@ -60,43 +61,32 @@ class DissertationRole(SerializableModel):
 
 def count_by_adviser(adviser, role=None, dissertation_status=None):
     query = DissertationRole.objects.filter(adviser=adviser)
-
     if role:
         query = query.filter(status=role)
-
     if dissertation_status:
         query = query.filter(dissertation__status=dissertation_status)
-
-    query = query.filter(dissertation__active=True)\
-                 .count()
-
+    query = query.filter(dissertation__active=True).count()
     return query
 
 
 def count_by_dissertation(dissertation):
-    return DissertationRole.objects.filter(dissertation=dissertation)\
-                                   .count()
+    return DissertationRole.objects.filter(dissertation=dissertation).count()
 
 
 def count_by_status_adviser_dissertation(status, adviser, dissertation):
-    return DissertationRole.objects.filter(
-                                        adviser=adviser
-                                    ).filter(
-                                        status=status
-                                    ).filter(
-                                        dissertation=dissertation
-                                    ).count()
+    return DissertationRole.objects.filter(adviser=adviser)\
+                                   .filter(status=status)\
+                                   .filter(dissertation=dissertation)\
+                                   .count()
 
 
 def search_by_adviser_and_role_stats(adviser, role):
     return DissertationRole.objects.filter(adviser=adviser)\
                                    .filter(status=role)\
                                    .filter(dissertation__active=True)\
-                                   .exclude(
-                                            Q(dissertation__status='DRAFT') |
+                                   .exclude(Q(dissertation__status='DRAFT') |
                                             Q(dissertation__status='ENDED') |
-                                            Q(dissertation__status='DEFENDED')
-                                           )
+                                            Q(dissertation__status='DEFENDED'))
 
 
 def search_by_adviser_and_role_and_waiting(adviser, offers):
@@ -128,11 +118,9 @@ def search_by_adviser_and_role(adviser, role):
                                    .filter(adviser=adviser)\
                                    .filter(dissertation__active=True)\
                                    .exclude(dissertation__status='DRAFT')\
-                                   .order_by(
-                                                'dissertation__status',
-                                                'dissertation__author__person__last_name',
-                                                'dissertation__author__person__first_name'
-                                            )
+                                   .order_by('dissertation__status',
+                                             'dissertation__author__person__last_name',
+                                             'dissertation__author__person__first_name')
 
 
 def search_by_adviser_and_role_and_offers(adviser, role, offers):
@@ -144,10 +132,8 @@ def search_by_adviser_and_role_and_status(adviser, role, status):
                                    .filter(adviser=adviser)\
                                    .filter(dissertation__active=True)\
                                    .filter(dissertation__status=status)\
-                                   .order_by(
-                                                'dissertation__author__person__last_name',
-                                                'dissertation__author__person__first_name'
-                                            )
+                                   .order_by('dissertation__author__person__last_name',
+                                             'dissertation__author__person__first_name')
 
 
 def list_teachers_action_needed(offers):
@@ -158,22 +144,24 @@ def list_teachers_action_needed(offers):
                                    .distinct('adviser')
 
 
-def get_promoteur_by_dissertation_str(dissert):
-    promoteur = search_by_dissertation_and_role(dissert, 'PROMOTEUR')
+def get_promoteur_by_dissertation_str(dissertation):
+    promoteur = search_by_dissertation_and_role(dissertation, 'PROMOTEUR')
     if promoteur:
         return str(promoteur[0].adviser)
     else:
         return 'none'
 
-def get_promoteur_by_dissertation(dissert):
-    promoteur = search_by_dissertation_and_role(dissert, 'PROMOTEUR')
+
+def get_promoteur_by_dissertation(dissertation):
+    promoteur = search_by_dissertation_and_role(dissertation, 'PROMOTEUR')
     if promoteur:
         return promoteur[0].adviser
     else:
         return 'none'
 
-def get_copromoteur_by_dissertation(dissert):
-    copromoteur = search_by_dissertation_and_role(dissert, 'CO_PROMOTEUR')
+
+def get_copromoteur_by_dissertation(dissertation):
+    copromoteur = search_by_dissertation_and_role(dissertation, 'CO_PROMOTEUR')
     if copromoteur:
         return str(copromoteur[0].adviser)
     else:
@@ -187,5 +175,4 @@ def get_tab_count_role_by_offer(list_roles):
             tab[str(role.dissertation.offer_year_start.offer.title)] += 1
         else:
             tab[str(role.dissertation.offer_year_start.offer.title)] = 1
-
     return tab

@@ -23,11 +23,11 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.db import models
+from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from django.contrib import admin
 from base.models.serializable_model import SerializableModel
 from .dissertation_role import DissertationRole
 
@@ -101,20 +101,18 @@ class Adviser(SerializableModel):
 
         list_stat[2] = advisers_copro.count()
         tab_offer_count_copro = {}
-        for dissertaion_role_copro in advisers_copro:
-            if dissertaion_role_copro.dissertation.offer_year_start.offer.title in tab_offer_count_copro:
-                tab_offer_count_copro[dissertaion_role_copro.dissertation.offer_year_start.offer.title] = \
-                    tab_offer_count_copro[str(dissertaion_role_copro.dissertation.offer_year_start.offer.title)] + 1
+        for dissertation_role_copro in advisers_copro:
+            if dissertation_role_copro.dissertation.offer_year_start.offer.title in tab_offer_count_copro:
+                tab_offer_count_copro[dissertation_role_copro.dissertation.offer_year_start.offer.title] = \
+                    tab_offer_count_copro[str(dissertation_role_copro.dissertation.offer_year_start.offer.title)] + 1
             else:
-                tab_offer_count_copro[dissertaion_role_copro.dissertation.offer_year_start.offer.title] = 1
-
-        advisers_reader = queryset.filter(Q(adviser=self) &
-                                          Q(status='READER') &
-                                          Q(dissertation__active=True))\
+                tab_offer_count_copro[dissertation_role_copro.dissertation.offer_year_start.offer.title] = 1
+        advisers_reader = queryset.filter(adviser=self) \
+                                  .filter(status='READER') \
+                                  .filter(dissertation__active=True)\
                                   .exclude(Q(dissertation__status='DRAFT') |
                                            Q(dissertation__status='ENDED') |
                                            Q(dissertation__status='DEFENDED'))
-
         list_stat[3] = advisers_reader.count()
         tab_offer_count_read = {}
         for dissertation_role_read in advisers_reader:
@@ -143,42 +141,26 @@ class Adviser(SerializableModel):
         ordering = ["person__last_name", "person__middle_name", "person__first_name"]
 
 
-def search_by_person(a_person):
-    try:
-        adviser = Adviser.objects.get(person=a_person)
-        return adviser
-    except ObjectDoesNotExist:
-        return None
-
-
-def find_by_person(a_person):
-    adviser = Adviser.objects.filter(person=a_person)
+def add(person, type_arg, available_by_email, available_by_phone, available_at_office, comment):
+    adviser = Adviser(person=person, type=type_arg, available_by_email=available_by_email,
+                      available_by_phone=available_by_phone, available_at_office=available_at_office,
+                      comment=comment)
+    adviser.save()
     return adviser
 
 
-def search_adviser(terms):
-    queryset = Adviser.objects.all().filter(type='PRF')
-    if terms:
-        queryset = queryset.filter(
-                                    (
-                                        Q(person__first_name__icontains=terms) |
-                                        Q(person__last_name__icontains=terms)
-                                    ) &
-                                    Q(type='PRF')).distinct()
-    return queryset
+def find_by_person(person):
+    adviser = Adviser.objects.filter(person=person)
+    return adviser
 
 
 def list_teachers():
-    return Adviser.objects.filter(type='PRF')\
-                          .order_by('person__last_name', 'person__first_name')
+    return Adviser.objects.filter(type='PRF').order_by('person__last_name', 'person__first_name')
 
 
-def add(person, type_arg, available_by_email, available_by_phone, available_at_office, comment):
-    adv = Adviser(person=person,
-                  type=type_arg,
-                  available_by_email=available_by_email,
-                  available_by_phone=available_by_phone,
-                  available_at_office=available_at_office,
-                  comment=comment)
-    adv.save()
-    return adv
+def search_by_person(person):
+    try:
+        adviser = Adviser.objects.get(person=person)
+        return adviser
+    except ObjectDoesNotExist:
+        return None

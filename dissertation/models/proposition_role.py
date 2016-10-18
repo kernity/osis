@@ -23,14 +23,15 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from base.models.serializable_model import SerializableModel
 from django.contrib import admin
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from base.models.serializable_model import SerializableModel
 
 
 class PropositionRoleAdmin(admin.ModelAdmin):
     list_display = ('adviser', 'status', 'proposition_dissertation')
+    raw_id_fields = ('adviser', 'proposition_dissertation')
 
 
 class PropositionRole(SerializableModel):
@@ -52,39 +53,35 @@ class PropositionRole(SerializableModel):
 
 
 def count_by_dissertation(dissertation):
-    return PropositionRole.objects.filter(proposition_dissertation=dissertation.proposition_dissertation)\
-                                  .count()
+    return PropositionRole.objects.filter(proposition_dissertation=dissertation.proposition_dissertation).count()
 
 
 def search_by_dissertation(dissertation):
     return PropositionRole.objects.filter(proposition_dissertation=dissertation.proposition_dissertation)
 
 
-def count_by_proposition(prop_dissert):
-    return PropositionRole.objects.filter(proposition_dissertation=prop_dissert)\
-                                  .count()
+def count_by_proposition(proposition):
+    return PropositionRole.objects.filter(proposition_dissertation=proposition).count()
 
 
-def search_by_proposition(prop_dissert):
-    return PropositionRole.objects.filter(proposition_dissertation=prop_dissert)
+def search_by_proposition(proposition):
+    return PropositionRole.objects.filter(proposition_dissertation=proposition)
 
 
-def add(status, adviser, proposition_dissertation):
-    if count_by_status_adviser_proposition(status, adviser, proposition_dissertation) == 0:
-        role = PropositionRole(status=status, adviser=adviser, proposition_dissertation=proposition_dissertation)
+def add(status, adviser, proposition):
+    if count_by_status_adviser_proposition(status, adviser, proposition) == 0:
+        role = PropositionRole(status=status, adviser=adviser, proposition_dissertation=proposition)
         role.save()
 
 
-def delete(status, proposition_dissertation):
-    roles = PropositionRole.objects.filter(proposition_dissertation=proposition_dissertation)\
-                                   .filter(status=status)
-
+def delete(status, proposition):
+    roles = PropositionRole.objects.filter(proposition_dissertation=proposition).filter(status=status)
     for role in roles:
         role.delete()
 
 
-def count_by_status_adviser_proposition(status, adviser, proposition_dissertation):
-    return PropositionRole.objects.filter(proposition_dissertation=proposition_dissertation)\
+def count_by_status_adviser_proposition(status, adviser, proposition):
+    return PropositionRole.objects.filter(proposition_dissertation=proposition)\
                                   .filter(status=status)\
                                   .filter(adviser=adviser)\
                                   .count()

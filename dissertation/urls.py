@@ -117,7 +117,6 @@ urlpatterns = [
         name='manager_informations_edit'),
     url(r'^manager_informations_list_request/$', information.manager_informations_list_request,
         name='manager_informations_list_request'),
-    url(r'^manager_informations_search$', information.manager_informations_search, name='manager_informations_search'),
 
     url(r'^manager_offer_parameters/$', offer_proposition.manager_offer_parameters, name='manager_offer_parameters'),
     url(r'^manager_offer_parameters_detail/(?P<pk>[0-9]+)/$', offer_proposition.manager_offer_parameters_detail,

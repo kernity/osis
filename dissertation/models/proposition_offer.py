@@ -23,10 +23,16 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from base.models.serializable_model import SerializableModel
 from django.db import models
 from django.utils import timezone
 from django.db.models import Q
+from django.contrib import admin
+from base.models.serializable_model import SerializableModel
+
+
+class PropositionOfferAdmin(admin.ModelAdmin):
+    list_display = ('proposition_dissertation', 'offer_proposition')
+    raw_id_fields = ('proposition_dissertation', 'offer_proposition')
 
 
 class PropositionOffer(SerializableModel):
@@ -42,7 +48,7 @@ def search_by_offers(offers):
                                            proposition_dissertation__visibility=True,
                                            offer_proposition__offer__in=offers,
                                            offer_proposition__start_visibility_proposition__lte=timezone.now())\
-        .distinct()
+                                   .distinct()
 
 
 def search_by_proposition_dissertation(proposition_dissertation):
@@ -57,7 +63,7 @@ def search(terms, active=None, visibility=None, connected_adviser=None):
     queryset = PropositionOffer.objects.filter(proposition_dissertation__active=True,
                                                proposition_dissertation__visibility=True,
                                                offer_proposition__start_visibility_proposition__lte=timezone.now())\
-        .distinct()
+                                       .distinct()
     if terms:
         queryset = queryset.filter(
             Q(proposition_dissertation__title__icontains=terms) |
@@ -65,8 +71,7 @@ def search(terms, active=None, visibility=None, connected_adviser=None):
             Q(proposition_dissertation__author__person__first_name__icontains=terms) |
             Q(proposition_dissertation__author__person__middle_name__icontains=terms) |
             Q(proposition_dissertation__author__person__last_name__icontains=terms) |
-            Q(offer_proposition__acronym__icontains=terms)
-        )
+            Q(offer_proposition__acronym__icontains=terms))
     if active:
         queryset = queryset.filter(proposition_dissertation__active=active)
     elif visibility:

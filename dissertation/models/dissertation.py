@@ -23,19 +23,17 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from base.models.serializable_model import SerializableModel
-from dissertation.models.dissertation_role import get_promoteur_by_dissertation
-from dissertation.utils.emails_dissert import send_mail_dissert_accepted_by_teacher, \
-    send_mail_dissert_acknowledgement, send_mail_dissert_accepted_by_com, send_mail_dissert_refused_by_teacher, \
-    send_mail_dissert_refused_by_com, send_mail_to_teacher_new_dissert
 from django.contrib import admin
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from base.models import offer_year, student
-from . import proposition_dissertation
-from . import offer_proposition
-from . import dissertation_location
+from base.models.serializable_model import SerializableModel
+from dissertation.models.dissertation_role import get_promoteur_by_dissertation
+from dissertation.utils.emails_dissert import send_mail_dissert_accepted_by_teacher, \
+    send_mail_dissert_acknowledgement, send_mail_dissert_accepted_by_com, send_mail_dissert_refused_by_teacher, \
+    send_mail_dissert_refused_by_com, send_mail_to_teacher_new_dissert
+from . import proposition_dissertation, offer_proposition, dissertation_location
 
 
 class DissertationAdmin(admin.ModelAdmin):
@@ -124,6 +122,56 @@ class Dissertation(SerializableModel):
         ordering = ["author__person__last_name", "author__person__middle_name", "author__person__first_name", "title"]
 
 
+def count_by_proposition(proposition):
+    return Dissertation.objects.filter(active=True) \
+        .filter(proposition_dissertation=proposition) \
+        .exclude(status='DRAFT') \
+        .count()
+
+
+def find_by_id(dissertation_id):
+    return Dissertation.objects.get(pk=dissertation_id)
+
+
+def get_next_status(dissertation, operation):
+    if operation == "go_forward":
+        if dissertation.status == 'DRAFT' or dissertation.status == 'DIR_KO':
+            return 'DIR_SUBMIT'
+        elif dissertation.status == 'TO_RECEIVE':
+            return 'TO_DEFEND'
+        elif dissertation.status == 'TO_DEFEND':
+            return 'DEFENDED'
+        else:
+            return dissertation.status
+    elif operation == "accept":
+        offer_prop = offer_proposition.get_by_offer(dissertation.offer_year_start.offer)
+        if offer_prop.validation_commission_exists and dissertation.status == 'DIR_SUBMIT':
+            return 'COM_SUBMIT'
+        elif offer_prop.evaluation_first_year and (dissertation.status == 'DIR_SUBMIT' or
+                                                   dissertation.status == 'COM_SUBMIT' or
+                                                   dissertation.status == 'COM_KO'):
+            return 'EVA_SUBMIT'
+        elif dissertation.status == 'EVA_SUBMIT' or dissertation.status == 'EVA_KO':
+            return 'TO_RECEIVE'
+        elif dissertation.status == 'DEFENDED':
+            return 'ENDED_WIN'
+        else:
+            return 'TO_RECEIVE'
+    elif operation == "refuse":
+        if dissertation.status == 'DIR_SUBMIT':
+            return 'DIR_KO'
+        elif dissertation.status == 'COM_SUBMIT':
+            return 'COM_KO'
+        elif dissertation.status == 'EVA_SUBMIT':
+            return 'EVA_KO'
+        elif dissertation.status == 'DEFENDED':
+            return 'ENDED_LOS'
+        else:
+            return dissertation.status
+    else:
+        return dissertation.status
+
+
 def search(terms=None, active=True):
     queryset = Dissertation.objects.all()
     if terms:
@@ -142,10 +190,6 @@ def search(terms=None, active=True):
     return queryset
 
 
-def search_by_proposition_author(terms=None, active=True, proposition_author=None):
-    return search(terms=terms, active=active).filter(proposition_dissertation__author=proposition_author)
-
-
 def search_by_offer(offers):
     return Dissertation.objects.filter(offer_year_start__offer__in=offers)
 
@@ -154,66 +198,5 @@ def search_by_offer_and_status(offers, status):
     return search_by_offer(offers).filter(status=status)
 
 
-def count_by_proposition(proposition):
-    return Dissertation.objects.filter(active=True) \
-        .filter(proposition_dissertation=proposition) \
-        .exclude(status='DRAFT') \
-        .count()
-
-
-def get_next_status(dissertation, operation):
-    if operation == "go_forward":
-        if dissertation.status == 'DRAFT' or dissertation.status == 'DIR_KO':
-            return 'DIR_SUBMIT'
-
-        elif dissertation.status == 'TO_RECEIVE':
-            return 'TO_DEFEND'
-
-        elif dissertation.status == 'TO_DEFEND':
-            return 'DEFENDED'
-        else:
-            return dissertation.status
-
-    elif operation == "accept":
-
-        offer_prop = offer_proposition.get_by_offer(dissertation.offer_year_start.offer)
-
-        if offer_prop.validation_commission_exists and dissertation.status == 'DIR_SUBMIT':
-
-            return 'COM_SUBMIT'
-
-        elif offer_prop.evaluation_first_year and (dissertation.status == 'DIR_SUBMIT' or
-                                                   dissertation.status == 'COM_SUBMIT' or
-                                                   dissertation.status == 'COM_KO'):
-            return 'EVA_SUBMIT'
-
-        elif dissertation.status == 'EVA_SUBMIT' or dissertation.status == 'EVA_KO':
-            return 'TO_RECEIVE'
-
-        elif dissertation.status == 'DEFENDED':
-            return 'ENDED_WIN'
-
-        else:
-            return 'TO_RECEIVE'
-
-    elif operation == "refuse":
-        if dissertation.status == 'DIR_SUBMIT':
-            return 'DIR_KO'
-
-        elif dissertation.status == 'COM_SUBMIT':
-            return 'COM_KO'
-
-        elif dissertation.status == 'EVA_SUBMIT':
-            return 'EVA_KO'
-
-        elif dissertation.status == 'DEFENDED':
-            return 'ENDED_LOS'
-        else:
-            return dissertation.status
-
-    else:
-        return dissertation.status
-
-
-def find_by_id(dissertation_id):
-    return Dissertation.objects.get(pk=dissertation_id)
+def search_by_proposition_author(terms=None, active=True, proposition_author=None):
+    return search(terms=terms, active=active).filter(proposition_dissertation__author=proposition_author)

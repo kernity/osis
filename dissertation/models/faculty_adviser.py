@@ -25,18 +25,16 @@
 ##############################################################################
 from django.contrib import admin
 from django.db import models
-from base.models import offer
-from . import adviser
 
 
 class FacultyAdviserAdmin(admin.ModelAdmin):
     list_display = ('offer', 'adviser', 'get_adviser_type')
-    raw_id_fields = ('offer',)
+    raw_id_fields = ('offer', 'adviser')
 
 
 class FacultyAdviser(models.Model):
-    adviser = models.ForeignKey(adviser.Adviser)
-    offer = models.ForeignKey(offer.Offer)
+    adviser = models.ForeignKey('Adviser')
+    offer = models.ForeignKey('base.Offer')
 
     def __str__(self):
         return self.offer.title
@@ -45,7 +43,7 @@ class FacultyAdviser(models.Model):
         return self.adviser.type
 
 
-def search_by_adviser(a_adviser):
-    objects = FacultyAdviser.objects.filter(adviser=a_adviser)
+def search_by_adviser(adviser):
+    objects = FacultyAdviser.objects.filter(adviser=adviser)
     offers = [obj.offer for obj in list(objects)]
     return offers

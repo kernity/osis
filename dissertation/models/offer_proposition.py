@@ -23,11 +23,10 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from base.models.serializable_model import SerializableModel
 from django.contrib import admin
 from django.db import models
 from django.utils import timezone
-from base.models import offer
+from base.models.serializable_model import SerializableModel
 from datetime import datetime
 
 
@@ -38,7 +37,7 @@ class OfferPropositionAdmin(admin.ModelAdmin):
 
 class OfferProposition(SerializableModel):
     acronym = models.CharField(max_length=200)
-    offer = models.ForeignKey(offer.Offer)
+    offer = models.ForeignKey('base.Offer')
     student_can_manage_readers = models.BooleanField(default=True)
     adviser_can_suggest_reader = models.BooleanField(default=False)
     evaluation_first_year = models.BooleanField(default=False)
@@ -57,7 +56,6 @@ class OfferProposition(SerializableModel):
         now = datetime.date(datetime.now())
         start = self.start_visibility_proposition
         end = self.end_visibility_proposition
-
         return start <= now <= end
 
     @property
@@ -65,7 +63,6 @@ class OfferProposition(SerializableModel):
         now = datetime.date(datetime.now())
         start = self.start_visibility_dissertation
         end = self.end_visibility_dissertation
-
         return start <= now <= end
 
     @property
@@ -73,7 +70,6 @@ class OfferProposition(SerializableModel):
         now = datetime.date(datetime.now())
         start = self.start_jury_visibility
         end = self.end_jury_visibility
-
         return start <= now <= end
 
     @property
@@ -81,37 +77,32 @@ class OfferProposition(SerializableModel):
         now = datetime.date(datetime.now())
         start = self.start_edit_title
         end = self.end_edit_title
-
         return start <= now <= end
 
     def __str__(self):
         return self.acronym
 
 
-def get_by_offer(an_offer):
-    return OfferProposition.objects.get(offer=an_offer)
+def get_by_offer(offer):
+    return OfferProposition.objects.get(offer=offer)
 
 
 def search_by_offer(offers):
-    return OfferProposition.objects.filter(offer__in=offers)\
-                                   .distinct()\
-                                   .order_by('acronym')
+    return OfferProposition.objects.filter(offer__in=offers).distinct().order_by('acronym')
 
 
-def show_validation_commission(offer_props):
-    # True si validation_commission_exists est True pour au moins une offer_prop dans offer_props
-    # False sinon
-    return any([offer_prop.validation_commission_exists for offer_prop in offer_props])
+def show_validation_commission(offer_propositions):
+    # True if validation_commission_exists is True or it exist one offer_proposition
+    return any([offer_proposition.validation_commission_exists for offer_proposition in offer_propositions])
 
 
-def show_evaluation_first_year(offer_props):
-    # True si evaluation_first_year est True pour au moins une offer_prop dans offer_props
-    # False sinon
-    return any([offer_prop.evaluation_first_year for offer_prop in offer_props])
+def show_evaluation_first_year(offer_propositions):
+    # True if validation_commission_exists is True or it exist one offer_proposition
+    return any([offer_proposition.evaluation_first_year for offer_proposition in offer_propositions])
 
 
-def get_by_dissertation(dissert):
-    return get_by_offer(dissert.offer_year_start.offer)
+def get_by_dissertation(dissertation):
+    return get_by_offer(dissertation.offer_year_start.offer)
 
 
 def find_by_id(offer_proposition_id):
