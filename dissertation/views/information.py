@@ -25,7 +25,7 @@
 ##############################################################################
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from dissertation.models.adviser import Adviser, search_adviser
+from dissertation.models.adviser import Adviser
 from dissertation.models import adviser
 from dissertation.models import dissertation_role
 from dissertation.models import faculty_adviser
@@ -304,13 +304,6 @@ def manager_informations_edit(request, pk):
 
 @login_required
 @user_passes_test(is_manager)
-def manager_informations_search(request):
-    advisers = search_adviser(terms=request.GET['search'])
-    return layout.render(request, "manager_informations_list.html", {'advisers': advisers})
-
-
-@login_required
-@user_passes_test(is_manager)
 def manager_informations_list_request(request):
     person = mdl.person.find_by_user(request.user)
     adv = adviser.search_by_person(person)
@@ -344,6 +337,7 @@ def manager_informations_detail_list(request, pk):
                           'adviser_list_dissertations_internship': adv_list_disserts_internship
                           })
 
+
 @login_required
 @user_passes_test(is_manager)
 def manager_informations_detail_list_wait(request, pk):
@@ -351,10 +345,10 @@ def manager_informations_detail_list_wait(request, pk):
     connected_adviser = adviser.search_by_person(person)
     offers = faculty_adviser.search_by_adviser(connected_adviser)
     adv = get_object_or_404(Adviser, pk=pk)
-    disserts_role=dissertation_role.search_by_adviser_and_role_and_waiting(adv, offers)
+    disserts_role = dissertation_role.search_by_adviser_and_role_and_waiting(adv, offers)
 
     return layout.render(request, "manager_informations_detail_list_wait.html",
-                         {'disserts_role': disserts_role,'adviser':adv})
+                         {'disserts_role': disserts_role, 'adviser': adv})
 
 
 @login_required
