@@ -44,7 +44,7 @@ COLS_WIDTH = [20*mm,55*mm,45*mm,15*mm,40*mm]
 STUDENTS_PER_PAGE = 24
 
 
-def add_header_footer(canvas, doc):
+def _write_header_and_footer(canvas, doc):
     """
     Add the page number
     """
@@ -53,10 +53,10 @@ def add_header_footer(canvas, doc):
     canvas.saveState()
 
     # Header
-    header_building(canvas, doc, styles)
+    _write_header(canvas, doc, styles)
 
     # Footer
-    footer_building(canvas, doc, styles)
+    _write_footer(canvas, doc, styles)
 
     # Release the canvas
     canvas.restoreState()
@@ -81,7 +81,7 @@ def build_pdf(document):
 
     for learn_unit_year in document['learning_unit_years']:
         for program in learn_unit_year['programs']:
-            data = headers_table()
+            data = _exam_enrollments_table_headers()
             students_printed = 0
             enrollments_to_print = len(program['enrollments'])
             nb_students = len(program['enrollments'])
@@ -100,24 +100,25 @@ def build_pdf(document):
                 if students_printed == STUDENTS_PER_PAGE or enrollments_to_print == 0:
                     students_printed = 0
                     # Print a complete PDF sheet
-                    # 3. Write header
-                    main_data(learn_unit_year, program, nb_students, styles, content)
+                    # 3. Write addresses & programs info
+                    _write_addresses_block(learn_unit_year, program, styles, content)
+                    _write_program_block(content, learn_unit_year, nb_students, program, styles)
                     # 4. Adding the complete table of examEnrollments to the PDF sheet
                     _write_table_of_students(content, data)
 
                     # 5. Write Legend
                     deadline = program['deadline']
-                    end_page_infos_building(content, deadline)
-                    legend_building(learn_unit_year['decimal_scores'], content)
+                    _write_legend(content, deadline)
+                    _write_scores_legend(learn_unit_year['decimal_scores'], content)
 
                     # 6. New Page
                     content.append(PageBreak())
 
                     # 7. New headers_table in variable 'data' with headers ('noma', 'firstname', 'lastname'...)
                     #    in case there's one more page after this one
-                    data = headers_table()
+                    data = _exam_enrollments_table_headers()
 
-    doc.build(content, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
+    doc.build(content, onFirstPage=_write_header_and_footer, onLaterPages=_write_header_and_footer)
     pdf = buffer.getvalue()
     buffer.close()
     response.write(pdf)
@@ -133,7 +134,7 @@ def print_notes(list_exam_enrollment, tutor=None):
     return build_pdf(mdl.exam_enrollment.scores_sheet_data(list_exam_enrollment, tutor=tutor))
 
 
-def header_building(canvas, doc, styles):
+def _write_header(canvas, doc, styles):
     a = Image(settings.LOGO_INSTITUTION_URL, width=15*mm, height=20*mm)
 
     p = Paragraph('''<para align=center>
@@ -150,7 +151,7 @@ def header_building(canvas, doc, styles):
     t_header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
 
 
-def footer_building(canvas, doc, styles):
+def _write_footer(canvas, doc, styles):
     printing_date = datetime.datetime.now()
     printing_date = printing_date.strftime("%d/%m/%Y")
     pageinfo = "%s : %s" % (_('printing_date'), printing_date)
@@ -169,7 +170,7 @@ def _write_table_of_students(content, data):
     content.append(t)
 
 
-def legend_building(decimal_scores, content):
+def _write_scores_legend(decimal_scores, content):
     p = ParagraphStyle('legend')
     p.textColor = 'grey'
     p.borderColor = 'grey'
@@ -194,7 +195,7 @@ def legend_building(decimal_scores, content):
                             ''' % legend_text, p))
 
 
-def headers_table():
+def _exam_enrollments_table_headers():
     data = [['''%s''' % _('registration_number'),
              '''%s''' % _('lastname'),
              '''%s''' % _('firstname'),
@@ -203,99 +204,108 @@ def headers_table():
     return data
 
 
-def get_data_coordinator(learning_unit_year, styles):
-    p_coord_location = Paragraph('''''', styles["Normal"])
-    p_coord_address = Paragraph('''''', styles["Normal"])
-    p_responsible = Paragraph('<b>%s :</b>' % _('learning_unit_responsible'), styles["Normal"])
-    coordinator = learning_unit_year["coordinator"]
-    if coordinator:
-        p_coord_name = Paragraph(
-            '%s %s' % (coordinator['last_name'], coordinator['first_name']), styles["Normal"])
-        address = coordinator['address']
-        if address:
-            p_coord_location = Paragraph('''%s''' % address['location'], styles["Normal"])
-            if address['postal_code'] or address['city']:
-                p_coord_address = Paragraph(
-                    '''%s %s''' % (address['postal_code'], address['city']),styles["Normal"])
-    else:
-        p_coord_name = Paragraph('%s' % _('none'), styles["Normal"])
-
-    return [[p_responsible], [p_coord_name], [p_coord_location], [p_coord_address]]
-
-
-def main_data(learning_unit_year, program, nb_students, styles, content):
-
+def _write_addresses_block(learning_unit_year, program, styles, content):
     # We add first a blank line
     content.append(Paragraph('''
         <para spaceb=20>
             &nbsp;
         </para>
         ''', ParagraphStyle('normal')))
+    content.append(_build_header_addresses_block(learning_unit_year, program, styles))
 
-    text_left_style = ParagraphStyle('structure_header')
-    text_left_style.alignment = TA_LEFT
-    text_left_style.fontSize = 10
-    struct_address = program['address']
-    p_struct_name = Paragraph('%s' % struct_address.get('recipient') if struct_address.get('recipient') else '',
-                              styles["Normal"])
 
-    p_struct_location = Paragraph('%s' % struct_address.get('location') if struct_address.get('location') else '',
-                                  styles["Normal"])
-    p_struct_address = Paragraph('%s %s' % (struct_address.get('postal_code') if struct_address.get('postal_code') else '',
-                                            struct_address.get('city') if struct_address.get('city') else ''),
-                                 styles["Normal"])
-    phone_fax_data = ""
-    if struct_address.get('phone'):
-        phone_fax_data += "%s : %s" % (_('phone'), struct_address.get('phone'))
-    if struct_address.get('fax'):
-        if struct_address.get('phone'):
-            phone_fax_data += " - "
-        phone_fax_data += "%s : %s" % (_('fax'), struct_address.get('fax'))
-    p_phone_fax_data = Paragraph('%s' % phone_fax_data,
-                                 styles["Normal"])
-    p_email_data = Paragraph('{0} : {1}'.format(_('email'), struct_address.get('email')),
-                                 styles["Normal"])
-    if struct_address.get('email'):
-        data_structure = [[p_struct_name],
-                          [p_struct_location],
-                          [p_struct_address],
-                          [p_phone_fax_data],
-                          [p_email_data]]
-    else:
-        data_structure = [[p_struct_name],
-                          [p_struct_location],
-                          [p_struct_address],
-                          [p_phone_fax_data]]
-
-    header_coordinator_structure = [[get_data_coordinator(learning_unit_year, styles), data_structure]]
-    table_header = Table(header_coordinator_structure, colWidths='*')
+def _build_header_addresses_block(learning_unit_year, program, styles):
+    header_address_structure = [[_build_header_coordinator_address(learning_unit_year, styles),
+                                 _build_header_secretariat_address_block(program, styles)]]
+    table_header = Table(header_address_structure, colWidths='*')
     table_header.setStyle(TableStyle([
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ('VALIGN', (0, 0), (-1, -1), 'TOP')
     ]))
+    return table_header
 
-    content.append(table_header)
 
-    p = ParagraphStyle('right_page_header')
-    p.alignment = TA_RIGHT
-    p.fontSize = 10
+def _build_header_coordinator_address(learning_unit_year, styles):
+    coordinator = learning_unit_year["coordinator"]
+    address = coordinator['address']
+    return [[Paragraph(_get_coordinator_title_text(), styles["Normal"])],
+            [Paragraph(_get_coordinator_text(coordinator), styles["Normal"])],
+            [Paragraph(_get_coordinator_location_text(address), styles["Normal"])],
+            [Paragraph(_get_coordinator_city_text(address), styles["Normal"])]]
 
-    deliberation_date = program['deliberation_date']
 
-    content.append(Paragraph('%s : %s' % (_('deliberation_date'), deliberation_date), styles["Normal"]))
-    content.append(Paragraph('%s : %s  - Session : %s' % (_('academic_year'),
-                                                          learning_unit_year['academic_year'],
-                                                          learning_unit_year['session_number']),
-                             text_left_style))
-    # content.append(Paragraph('Session : %d' % session_exam.number_session, text_left_style))
-    content.append(Paragraph("<strong>%s : %s</strong>" % (learning_unit_year['acronym'], learning_unit_year['title']),
-                             styles["Normal"]))
-    content.append(Paragraph('''<b>%s : %s </b>(%s %s)''' % (_('program'),
-                                                             program['acronym'],
-                                                             nb_students,
-                                                             _('students')),
-                             styles["Normal"]))
+def _get_coordinator_city_text(address):
+    return '{} {}'.format(address['postal_code'] or '', address['city'] or '')
+
+
+def _get_coordinator_location_text(address):
+    return '{}'.format(address['location'] or '')
+
+
+def _get_coordinator_title_text():
+    return '<b>%s :</b>' % _('learning_unit_responsible')
+
+
+def _get_coordinator_text(coordinator):
+    if coordinator:
+        return '{} {}'.format(coordinator['last_name'], coordinator['first_name'])
+    return '{}'.format(_('none'))
+
+
+def _build_header_secretariat_address_block(program, styles):
+    secretariat_address = program['address']
+    data_structure = [[Paragraph(_get_recipient_text(secretariat_address), styles["Normal"])],
+                      [Paragraph(_get_location_text(secretariat_address), styles["Normal"])],
+                      [Paragraph(_get_postal_code_and_city_text(secretariat_address), styles["Normal"])],
+                      [Paragraph(_get_phone_and_fax_text(secretariat_address), styles["Normal"])]]
+    if secretariat_address.get('email'):
+        data_structure.append([Paragraph(_get_email_text(secretariat_address), styles["Normal"])])
+    return data_structure
+
+
+def _get_email_text(secretariat_address):
+    return '{0} : {1}'.format(_('email'), secretariat_address.get('email'))
+
+
+def _get_location_text(secretariat_address):
+    return '{}'.format(secretariat_address.get('location') or '')
+
+
+def _get_recipient_text(secretariat_address):
+    return '{}'.format(secretariat_address.get('recipient') or '')
+
+
+def _get_postal_code_and_city_text(secretariat_address):
+    return '{} {}'.format(secretariat_address.get('postal_code'), secretariat_address.get('city'))
+
+
+def _get_phone_and_fax_text(secretariat_address):
+    phone_fax_text = ""
+    phone = secretariat_address.get('phone')
+    fax = secretariat_address.get('fax')
+    if phone:
+        phone_fax_text = "{} : {}".format(_('phone'), phone)
+        if fax:
+            phone_fax_text += " - "
+            phone_fax_text += _get_fax_text(fax)
+    elif fax:
+        phone_fax_text += _get_fax_text(fax)
+    return phone_fax_text
+
+
+def _get_fax_text(fax):
+    return "{} : {}".format(_('fax'), fax)
+
+
+def _write_program_block(content, learning_unit_year, nb_students, program, styles):
+    text_left_style = ParagraphStyle('structure_header')
+    text_left_style.alignment = TA_LEFT
+    text_left_style.fontSize = 10
+    content.append(Paragraph(_get_deliberation_date_text(program), styles["Normal"]))
+    content.append(Paragraph(_get_academic_year_text(learning_unit_year), text_left_style))
+    content.append(Paragraph(_get_learning_unit_year_text(learning_unit_year), styles["Normal"]))
+    content.append(Paragraph(_get_program_text(nb_students, program), styles["Normal"]))
     content.append(Paragraph('''
         <para spaceb=2>
             &nbsp;
@@ -303,7 +313,28 @@ def main_data(learning_unit_year, program, nb_students, styles, content):
         ''', ParagraphStyle('normal')))
 
 
-def end_page_infos_building(content, end_date):
+def _get_program_text(nb_students, program):
+    return '''<b>{} : {} </b>({} {})'''.format(_('program'),
+                                               program['acronym'],
+                                               nb_students,
+                                               _('students'))
+
+
+def _get_learning_unit_year_text(learning_unit_year):
+    return "<strong>{} : {}</strong>".format(learning_unit_year['acronym'], learning_unit_year['title'])
+
+
+def _get_deliberation_date_text(program):
+    return '%s : %s' % (_('deliberation_date'), program['deliberation_date'] or '')
+
+
+def _get_academic_year_text(learning_unit_year):
+    return '{} : {}  - Session : {}'.format(_('academic_year'),
+                                            learning_unit_year['academic_year'],
+                                            learning_unit_year['session_number'])
+
+
+def _write_legend(content, end_date):
     p = ParagraphStyle('info')
     p.fontSize = 10
     p.alignment = TA_LEFT
