@@ -31,6 +31,7 @@ from django.contrib.auth import authenticate, logout
 from django.shortcuts import redirect
 from django.utils import translation
 from . import layout
+from base.forms.user_feedback_form import UserFeebackForm
 from base.models import person as person_mdl, academic_year as academic_year_mdl, \
     academic_calendar as academic_calendar_mdl, native as native_mdl
 
@@ -44,7 +45,24 @@ def access_denied(request):
 
 
 def server_error(request):
-    return layout.render(request, 'server_error.html', {})
+    if hasattr(settings, 'SENTRY_PUBLIC_DNS'):
+        form = UserFeebackForm(initial={'sentry_message_id': request.sentry.id })
+    else:
+        form = None
+    return layout.render(request, 'server_error.html', {'form': form, })
+
+
+def __send_message_to_sentry(user_feedback_form):
+    pass
+
+
+def post_user_feedback(request):
+    if request.method == 'POST':
+        user_feedback_form = UserFeebackForm(request.POST)
+        if user_feedback_form.is_valid():
+            __send_message_to_sentry(user_feedback_form)
+            return layout.render(request, 'server_error.html', {'form': user_feedback_form, 'sent_message': True, })
+    return layout.render(request, 'server_error.html', {'form': None})
 
 
 def noscript(request):

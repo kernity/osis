@@ -42,6 +42,8 @@ ADMIN_URL = '9yk!hw9ra/'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+ENVIRONMENT = 'LOCAL'
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -251,8 +253,6 @@ CKEDITOR_CONFIGS = {
 #         'PERFORMANCE': 'performance'
 #     }
 # }
-
-ENVIRONMENT = 'LOCAL'
 
 # This has to be replaced by the actual url where you institution logo can be found.
 # The best choici is to set an external url.

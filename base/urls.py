@@ -151,4 +151,6 @@ urlpatterns = [
         score_encoding.export_xls, name='scores_encoding_download'),
     url(r'^studies/assessments/scores_encoding/upload/(?P<learning_unit_year_id>[0-9]+)/$',
         upload_xls_utils.upload_scores_file, name='upload_encoding'),
+
+    url(r'^user_feedback/$', common.post_user_feedback, name='user_feedback'),
 ]

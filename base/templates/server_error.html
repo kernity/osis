@@ -30,9 +30,52 @@
 {% endblock %}
 {% block content %}
     <div class="container">
+    {% if form %}
+        {% if sent_message %}
+            <div class="alert alert-success" role="alert">{% trans 'user_feedback_thanks' %}</div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="center-block"><h3>{% trans 'server_error' %}</h3></div>
+                <div class="center-block"><h4>{% trans 'server_error_message' %}</h4></div>
+            </div>
+            <form class="form-control" id="frm_user_feedback" action="{% url 'user_feedback' %}">
+                <div class="panel-body">
+                        <input type="hidden" value="{{ form.sentry_message_id.value }}">
+                        <div class="form-group">
+                            <label for="user_name_id">{% trans 'name' %}</label>
+                            <input type="text" class="form-control" name="user_name"
+                                   id="user_name_id" value="{{ form.user_name.value }}" required/>
+                        </div>
+                        <div class="form-group">
+                            <label for="user_email_id">{% trans 'email' %}</label>
+                            <input type="email" class="form-control" name="email"
+                                   id="user_email_id" value="{{ form.email.value }}" required/>
+                        </div>
+                        <div class="form-group">
+                            <label for="user_message_id">{% trans 'what_happend' %}</label>
+                            <textarea rows="5" cols="50" class="form-control" name="message"
+                                   id="user_message_id" value="{{ form.message.value }}" required/>
+                        </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                        {% if sent_message %}
+                            <button class="btn btn-default"><a href="{% url 'home' %}">{% trans 'return_home' %}</a></button>
+                        {% else %}
+                            <input type="submit" class="btn btn-default" value="{% trans 'submit' %}">
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    {% else %}
         <div class="row">
             <div class="center-block"><h3>{% trans 'server_error' %}</h3></div>
             <div class="center-block"><h3>{% trans 'server_error_message' %}</h3></div>
         </div>
+    {% endif %}
     </div>
 {% endblock %}
