@@ -40,8 +40,9 @@ from base import models as mdl
 
 PAGE_SIZE = A4
 MARGIN_SIZE = 15 * mm
-COLS_WIDTH = [20*mm,55*mm,45*mm,15*mm,40*mm]
+COLS_WIDTH = [20*mm, 55*mm, 45*mm, 15*mm, 40*mm]
 STUDENTS_PER_PAGE = 24
+DATE_FORMAT = "%d/%m/%Y"
 
 
 def _write_header_and_footer(canvas, doc):
@@ -62,11 +63,16 @@ def _write_header_and_footer(canvas, doc):
     canvas.restoreState()
 
 
-def build_pdf(document):
+def build_pdf(data):
     filename = "%s.pdf" % _('scores_sheet')
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+    pdf = _build_binary_pdf_file(data)
+    response.write(pdf)
+    return response
 
+
+def _build_binary_pdf_file(data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer,
                             pagesize=PAGE_SIZE,
@@ -74,55 +80,80 @@ def build_pdf(document):
                             leftMargin=MARGIN_SIZE,
                             topMargin=85,
                             bottomMargin=18)
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
-    content = []
-
-    for learn_unit_year in document['learning_unit_years']:
-        for program in learn_unit_year['programs']:
-            data = _exam_enrollments_table_headers()
-            students_printed = 0
-            enrollments_to_print = len(program['enrollments'])
-            nb_students = len(program['enrollments'])
-            for enrollment in program['enrollments']:
-
-                # 1. Append the examEnrollment to the table 'data'
-                data.append([enrollment["registration_id"],
-                             Paragraph(enrollment["last_name"], styles['Normal']),
-                             Paragraph(enrollment["first_name"], styles['Normal']),
-                             enrollment["score"],
-                             Paragraph(_(enrollment["justification"]), styles['Normal'])])
-
-                students_printed += 1
-                enrollments_to_print -= 1
-
-                if students_printed == STUDENTS_PER_PAGE or enrollments_to_print == 0:
-                    students_printed = 0
-                    # Print a complete PDF sheet
-                    # 3. Write addresses & programs info
-                    _write_addresses_block(learn_unit_year, program, styles, content)
-                    _write_program_block(content, learn_unit_year, nb_students, program, styles)
-                    # 4. Adding the complete table of examEnrollments to the PDF sheet
-                    _write_table_of_students(content, data)
-
-                    # 5. Write Legend
-                    deadline = program['deadline']
-                    _write_legend(content, deadline)
-                    _write_scores_legend(learn_unit_year['decimal_scores'], content)
-
-                    # 6. New Page
-                    content.append(PageBreak())
-
-                    # 7. New headers_table in variable 'data' with headers ('noma', 'firstname', 'lastname'...)
-                    #    in case there's one more page after this one
-                    data = _exam_enrollments_table_headers()
-
+    content = _data_to_pdf_content(data)
     doc.build(content, onFirstPage=_write_header_and_footer, onLaterPages=_write_header_and_footer)
     pdf = buffer.getvalue()
     buffer.close()
-    response.write(pdf)
-    return response
+    return pdf
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def _build_exam_enrollments_table(enrollments_by_pdf_page, styles):
+    students_table = _students_table_header()
+    for enrollment in enrollments_by_pdf_page:
+        # 1. Append the examEnrollment to the table 'students_table'
+        students_table.append([enrollment["registration_id"],
+                               Paragraph(enrollment["last_name"], styles['Normal']),
+                               Paragraph(enrollment["first_name"], styles['Normal']),
+                               enrollment["score"],
+                               Paragraph(_(enrollment["justification"]), styles['Normal'])])
+    table = Table(students_table, COLS_WIDTH, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+        ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey)]))
+
+    return table
+
+
+def _calculate_number_of_required_pdf_pages(number_of_exam_enrollments):
+    return range(0, number_of_exam_enrollments % STUDENTS_PER_PAGE + 1)
+
+
+def _data_to_pdf_content(json_data):
+    styles = _build_styles()
+    content = []
+    for learn_unit_year in json_data['learning_unit_years']:
+        for program in learn_unit_year['programs']:
+            nb_students = len(program['enrollments'])
+            for enrollments_by_pdf_page in chunks(program['enrollments'], STUDENTS_PER_PAGE):
+                # 1. Write addresses & programs info
+                # We add first a blank line
+                content.append(Paragraph('''
+                        <para spaceb=20>
+                            &nbsp;
+                        </para>
+                        ''', ParagraphStyle('normal')))
+                content.append(_build_header_addresses_block(learn_unit_year, program, styles))
+                content.extend(_build_program_block_content(learn_unit_year, nb_students, program, styles))
+                # 2. Adding the complete table of examEnrollments to the PDF sheet
+                content.append(_build_exam_enrollments_table(enrollments_by_pdf_page, styles))
+                # 3. Write Legend
+                content.extend(_build_deadline_and_signature_content(program['deadline']))
+                content.append(_build_legend_block(learn_unit_year['decimal_scores']))
+                # 4. New Page
+                content.append(PageBreak())
+    return content
+
+
+def _build_styles():
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
+    return styles
+
+
+def _number_max_of_students_per_page_is_reached(students_printed):
+    return students_printed == STUDENTS_PER_PAGE
+
+
+def _all_students_for_the_program_are_printed(enrollments_to_print):
+    return enrollments_to_print == 0
 
 
 def print_notes(list_exam_enrollment, tutor=None):
@@ -153,32 +184,14 @@ def _write_header(canvas, doc, styles):
 
 def _write_footer(canvas, doc, styles):
     printing_date = datetime.datetime.now()
-    printing_date = printing_date.strftime("%d/%m/%Y")
+    printing_date = printing_date.strftime(DATE_FORMAT)
     pageinfo = "%s : %s" % (_('printing_date'), printing_date)
     footer = Paragraph(''' <para align=right>Page %d - %s </para>''' % (doc.page, pageinfo), styles['Normal'])
     w, h = footer.wrap(doc.width, doc.bottomMargin)
     footer.drawOn(canvas, doc.leftMargin, h)
 
 
-def _write_table_of_students(content, data):
-    t = Table(data, COLS_WIDTH, repeatRows=1)
-    t.setStyle(TableStyle([
-        ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-        ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey)]))
-    content.append(t)
-
-
-def _write_scores_legend(decimal_scores, content):
-    p = ParagraphStyle('legend')
-    p.textColor = 'grey'
-    p.borderColor = 'grey'
-    p.borderWidth = 1
-    p.alignment = TA_CENTER
-    p.fontSize = 8
-    p.borderPadding = 5
-
+def _build_legend_block(decimal_scores):
     legend_text = _('justification_legend') % mdl.exam_enrollment.justification_label_authorized()
     legend_text += "<br/>%s" % (str(_('score_legend') % "0 - 20"))
     if decimal_scores:
@@ -188,30 +201,27 @@ def _write_scores_legend(decimal_scores, content):
 
     legend_text += '''<br/> %s : <a href="%s"><font color=blue><u>%s</u></font></a>''' \
                    % (_("in_accordance_to_regulation"), _("link_to_RGEE"), _("link_to_RGEE"))
-    content.append(Paragraph('''
-                            <para>
-                                %s
-                            </para>
-                            ''' % legend_text, p))
+    return Paragraph('''<para> %s </para>''' % legend_text, _build_legend_block_style())
 
 
-def _exam_enrollments_table_headers():
+def _build_legend_block_style():
+    style = ParagraphStyle('legend')
+    style.textColor = 'grey'
+    style.borderColor = 'grey'
+    style.borderWidth = 1
+    style.alignment = TA_CENTER
+    style.fontSize = 8
+    style.borderPadding = 5
+    return style
+
+
+def _students_table_header():
     data = [['''%s''' % _('registration_number'),
              '''%s''' % _('lastname'),
              '''%s''' % _('firstname'),
              '''%s''' % _('score'),
              '''%s''' % _('justification')]]
     return data
-
-
-def _write_addresses_block(learning_unit_year, program, styles, content):
-    # We add first a blank line
-    content.append(Paragraph('''
-        <para spaceb=20>
-            &nbsp;
-        </para>
-        ''', ParagraphStyle('normal')))
-    content.append(_build_header_addresses_block(learning_unit_year, program, styles))
 
 
 def _build_header_addresses_block(learning_unit_year, program, styles):
@@ -298,19 +308,17 @@ def _get_fax_text(fax):
     return "{} : {}".format(_('fax'), fax)
 
 
-def _write_program_block(content, learning_unit_year, nb_students, program, styles):
+def _build_program_block_content(learning_unit_year, nb_students, program, styles):
     text_left_style = ParagraphStyle('structure_header')
     text_left_style.alignment = TA_LEFT
     text_left_style.fontSize = 10
-    content.append(Paragraph(_get_deliberation_date_text(program), styles["Normal"]))
-    content.append(Paragraph(_get_academic_year_text(learning_unit_year), text_left_style))
-    content.append(Paragraph(_get_learning_unit_year_text(learning_unit_year), styles["Normal"]))
-    content.append(Paragraph(_get_program_text(nb_students, program), styles["Normal"]))
-    content.append(Paragraph('''
-        <para spaceb=2>
-            &nbsp;
-        </para>
-        ''', ParagraphStyle('normal')))
+    return [
+        Paragraph(_get_deliberation_date_text(program), styles["Normal"]),
+        Paragraph(_get_academic_year_text(learning_unit_year), text_left_style),
+        Paragraph(_get_learning_unit_year_text(learning_unit_year), styles["Normal"]),
+        Paragraph(_get_program_text(nb_students, program), styles["Normal"]),
+        Paragraph('''<para spaceb=2> &nbsp; </para> ''', ParagraphStyle('normal'))
+    ]
 
 
 def _get_program_text(nb_students, program):
@@ -334,19 +342,25 @@ def _get_academic_year_text(learning_unit_year):
                                             learning_unit_year['session_number'])
 
 
-def _write_legend(content, end_date):
-    p = ParagraphStyle('info')
-    p.fontSize = 10
-    p.alignment = TA_LEFT
+def _build_deadline_and_signature_content(end_date):
+    return [
+        _build_deadline_note_paragraph(end_date),
+        Paragraph('''<para spaceb=5> &nbsp; </para>''', ParagraphStyle('normal')),
+        _build_signature_paragraph(),
+        Paragraph(''' <para spaceb=2> &nbsp; </para> ''', ParagraphStyle('normal'))
+    ]
+
+
+def _build_deadline_note_paragraph(end_date):
+    style = ParagraphStyle('info')
+    style.fontSize = 10
+    style.alignment = TA_LEFT
     if not end_date:
         end_date = '(%s)' % _('date_not_passed')
-    content.append(Paragraph(_("return_doc_to_administrator") % end_date
-                             , p))
-    content.append(Paragraph('''
-                            <para spaceb=5>
-                                &nbsp;
-                            </para>
-                            ''', ParagraphStyle('normal')))
+    return Paragraph(_("return_doc_to_administrator") % end_date, style)
+
+
+def _build_signature_paragraph():
     p_signature = ParagraphStyle('info')
     p_signature.fontSize = 10
     paragraph_signature = Paragraph('''
@@ -354,9 +368,4 @@ def _write_legend(content, end_date):
                     <font size=10>%s ..../..../.......... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font>
                     <font size=10>%s</font>
                    ''' % (_('done_at'), _('the'), _('signature')), p_signature)
-    content.append(paragraph_signature)
-    content.append(Paragraph('''
-        <para spaceb=2>
-            &nbsp;
-        </para>
-        ''', ParagraphStyle('normal')))
+    return paragraph_signature

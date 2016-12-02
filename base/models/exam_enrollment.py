@@ -251,17 +251,6 @@ def find_for_score_encodings(session_exam_number,
                    .select_related('learning_unit_enrollment__offer_enrollment__student__person')
 
 
-def _split_by_learning_unit_year(exam_enrollments):
-    enrollments_by_learn_unit = {}  # {<learning_unit_year_id> : [<ExamEnrollment>]}
-    for exam_enroll in exam_enrollments:
-        key = exam_enroll.session_exam.learning_unit_year.id
-        if key not in enrollments_by_learn_unit.keys():
-            enrollments_by_learn_unit[key] = [exam_enroll]
-        else:
-            enrollments_by_learn_unit[key].append(exam_enroll)
-    return enrollments_by_learn_unit.values()
-
-
 def scores_sheet_data(exam_enrollments, tutor=None):
     exam_enrollments = sort_for_encodings(exam_enrollments)
     payload = {'tutor_global_id': tutor.person.global_id if tutor else ''}
@@ -281,6 +270,17 @@ def _build_learning_unit_years_payload(exam_enrollments):
         learning_unit_years.append(learn_unit_year_dict)
     learning_unit_years = _order_by_acronym(learning_unit_years)
     return learning_unit_years
+
+
+def _split_by_learning_unit_year(exam_enrollments):
+    enrollments_by_learn_unit = {}  # {<learning_unit_year_id> : [<ExamEnrollment>]}
+    for exam_enroll in exam_enrollments:
+        key = exam_enroll.session_exam.learning_unit_year.id
+        if key not in enrollments_by_learn_unit.keys():
+            enrollments_by_learn_unit[key] = [exam_enroll]
+        else:
+            enrollments_by_learn_unit[key].append(exam_enroll)
+    return enrollments_by_learn_unit.values()
 
 
 def _build_learning_unit_year_payload(exam_enrollments):
@@ -313,9 +313,10 @@ def _build_coordinator_address_payload(coordinator):
     location = postal_code = city = ''
     if coordinator:
         coordinator_address = person_address.find_by_person_label(coordinator.person, 'PROFESSIONAL')
-        location = coordinator_address.location
-        postal_code = coordinator_address.postal_code
-        city = coordinator_address.city
+        if coordinator_address:
+            location = coordinator_address.location
+            postal_code = coordinator_address.postal_code
+            city = coordinator_address.city
     return locals()
 
 
