@@ -63,16 +63,17 @@ def _write_header_and_footer(canvas, doc):
     canvas.restoreState()
 
 
-def build_pdf(data):
+def build_response(data):
     filename = "%s.pdf" % _('scores_sheet')
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
-    pdf = _build_binary_pdf_file(data)
+    pdf = build_pdf(data)
     response.write(pdf)
     return response
 
 
-def _build_binary_pdf_file(data):
+def build_pdf(data):
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer,
                             pagesize=PAGE_SIZE,
@@ -148,21 +149,13 @@ def _build_styles():
     return styles
 
 
-def _number_max_of_students_per_page_is_reached(students_printed):
-    return students_printed == STUDENTS_PER_PAGE
-
-
-def _all_students_for_the_program_are_printed(enrollments_to_print):
-    return enrollments_to_print == 0
-
-
 def print_notes(list_exam_enrollment, tutor=None):
     """
     Create a multi-page document
     :param list_exam_enrollment: List of examEnrollments to print on the PDF.
     :param tutor: If the user who's asking for the PDF is a Tutor, this var is assigned to the user linked to the tutor.
     """
-    return build_pdf(mdl.exam_enrollment.scores_sheet_data(list_exam_enrollment, tutor=tutor))
+    return build_response(mdl.exam_enrollment.scores_sheet_data(list_exam_enrollment, tutor=tutor))
 
 
 def _write_header(canvas, doc, styles):
