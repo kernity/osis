@@ -34,7 +34,6 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from django.utils.translation import ugettext_lazy as _
 import datetime
-import json
 
 from base import models as mdl
 
@@ -45,22 +44,13 @@ STUDENTS_PER_PAGE = 24
 DATE_FORMAT = "%d/%m/%Y"
 
 
-def _write_header_and_footer(canvas, doc):
+def print_notes(list_exam_enrollment, tutor=None):
     """
-    Add the page number
+    Create a multi-page document
+    :param list_exam_enrollment: List of examEnrollments to print on the PDF.
+    :param tutor: If the user who's asking for the PDF is a Tutor, this var is assigned to the user linked to the tutor.
     """
-    styles = getSampleStyleSheet()
-    # Save the state of our canvas so we can draw on it
-    canvas.saveState()
-
-    # Header
-    _write_header(canvas, doc, styles)
-
-    # Footer
-    _write_footer(canvas, doc, styles)
-
-    # Release the canvas
-    canvas.restoreState()
+    return build_response(mdl.exam_enrollment.scores_sheet_data(list_exam_enrollment, tutor=tutor))
 
 
 def build_response(data):
@@ -73,7 +63,6 @@ def build_response(data):
 
 
 def build_pdf(data):
-
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer,
                             pagesize=PAGE_SIZE,
@@ -94,6 +83,68 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
+def _write_header_and_footer(canvas, doc):
+    """
+    Add the page number
+    """
+    styles = getSampleStyleSheet()
+    # Save the state of our canvas so we can draw on it
+    canvas.saveState()
+    # Header
+    _write_header(canvas, doc, styles)
+    # Footer
+    _write_footer(canvas, doc, styles)
+    # Release the canvas
+    canvas.restoreState()
+
+
+def _write_header(canvas, doc, styles):
+    a = Image(settings.LOGO_INSTITUTION_URL, width=15*mm, height=20*mm)
+    p = Paragraph('''<para align=center>
+                        <font size=16>%s</font>
+                    </para>''' % (_('scores_transcript')), styles["BodyText"])
+
+    data_header = [[a, '%s' % _('ucl_denom_location'), p], ]
+    t_header = Table(data_header, [30*mm, 100*mm, 50*mm])
+    t_header.setStyle(TableStyle([]))
+    w, h = t_header.wrap(doc.width, doc.topMargin)
+    t_header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
+
+
+def _build_styles():
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
+    return styles
+
+
+def _data_to_pdf_content(json_data):
+    styles = _build_styles()
+    content = []
+    for learn_unit_year in json_data['learning_unit_years']:
+        for program in learn_unit_year['programs']:
+            nb_students = len(program['enrollments'])
+            for enrollments_by_pdf_page in chunks(program['enrollments'], STUDENTS_PER_PAGE):
+                content.extend(_build_page_content(enrollments_by_pdf_page, learn_unit_year, nb_students, program, styles))
+    return content
+
+
+def _build_page_content(enrollments_by_pdf_page, learn_unit_year, nb_students, program, styles):
+    page_content = []
+    # 1. Write addresses & programs info
+    # We add first a blank line
+    page_content.append(Paragraph('''<para spaceb=20>&nbsp;</para>''', ParagraphStyle('normal')))
+    page_content.append(_build_header_addresses_block(learn_unit_year, program, styles))
+    page_content.extend(_build_program_block_content(learn_unit_year, nb_students, program, styles))
+    # 2. Adding the complete table of examEnrollments to the PDF sheet
+    page_content.append(_build_exam_enrollments_table(enrollments_by_pdf_page, styles))
+    # 3. Write Legend
+    page_content.extend(_build_deadline_and_signature_content(program['deadline']))
+    page_content.append(_build_legend_block(learn_unit_year['decimal_scores']))
+    # 4. New Page
+    page_content.append(PageBreak())
+    return page_content
+
+
 def _build_exam_enrollments_table(enrollments_by_pdf_page, styles):
     students_table = _students_table_header()
     for enrollment in enrollments_by_pdf_page:
@@ -111,101 +162,6 @@ def _build_exam_enrollments_table(enrollments_by_pdf_page, styles):
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey)]))
 
     return table
-
-
-def _calculate_number_of_required_pdf_pages(number_of_exam_enrollments):
-    return range(0, number_of_exam_enrollments % STUDENTS_PER_PAGE + 1)
-
-
-def _data_to_pdf_content(json_data):
-    styles = _build_styles()
-    content = []
-    for learn_unit_year in json_data['learning_unit_years']:
-        for program in learn_unit_year['programs']:
-            nb_students = len(program['enrollments'])
-            for enrollments_by_pdf_page in chunks(program['enrollments'], STUDENTS_PER_PAGE):
-                # 1. Write addresses & programs info
-                # We add first a blank line
-                content.append(Paragraph('''
-                        <para spaceb=20>
-                            &nbsp;
-                        </para>
-                        ''', ParagraphStyle('normal')))
-                content.append(_build_header_addresses_block(learn_unit_year, program, styles))
-                content.extend(_build_program_block_content(learn_unit_year, nb_students, program, styles))
-                # 2. Adding the complete table of examEnrollments to the PDF sheet
-                content.append(_build_exam_enrollments_table(enrollments_by_pdf_page, styles))
-                # 3. Write Legend
-                content.extend(_build_deadline_and_signature_content(program['deadline']))
-                content.append(_build_legend_block(learn_unit_year['decimal_scores']))
-                # 4. New Page
-                content.append(PageBreak())
-    return content
-
-
-def _build_styles():
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
-    return styles
-
-
-def print_notes(list_exam_enrollment, tutor=None):
-    """
-    Create a multi-page document
-    :param list_exam_enrollment: List of examEnrollments to print on the PDF.
-    :param tutor: If the user who's asking for the PDF is a Tutor, this var is assigned to the user linked to the tutor.
-    """
-    return build_response(mdl.exam_enrollment.scores_sheet_data(list_exam_enrollment, tutor=tutor))
-
-
-def _write_header(canvas, doc, styles):
-    a = Image(settings.LOGO_INSTITUTION_URL, width=15*mm, height=20*mm)
-
-    p = Paragraph('''<para align=center>
-                        <font size=16>%s</font>
-                    </para>''' % (_('scores_transcript')), styles["BodyText"])
-
-    data_header = [[a, '%s' % _('ucl_denom_location'), p], ]
-
-    t_header = Table(data_header, [30*mm, 100*mm, 50*mm])
-
-    t_header.setStyle(TableStyle([]))
-
-    w, h = t_header.wrap(doc.width, doc.topMargin)
-    t_header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
-
-
-def _write_footer(canvas, doc, styles):
-    printing_date = datetime.datetime.now()
-    printing_date = printing_date.strftime(DATE_FORMAT)
-    pageinfo = "%s : %s" % (_('printing_date'), printing_date)
-    footer = Paragraph(''' <para align=right>Page %d - %s </para>''' % (doc.page, pageinfo), styles['Normal'])
-    w, h = footer.wrap(doc.width, doc.bottomMargin)
-    footer.drawOn(canvas, doc.leftMargin, h)
-
-
-def _build_legend_block(decimal_scores):
-    legend_text = _('justification_legend') % mdl.exam_enrollment.justification_label_authorized()
-    legend_text += "<br/>%s" % (str(_('score_legend') % "0 - 20"))
-    if decimal_scores:
-        legend_text += "<br/><font color=red>%s</font>" % _('authorized_decimal_for_this_activity')
-    else:
-        legend_text += "<br/><font color=red>%s</font>" % _('unauthorized_decimal_for_this_activity')
-
-    legend_text += '''<br/> %s : <a href="%s"><font color=blue><u>%s</u></font></a>''' \
-                   % (_("in_accordance_to_regulation"), _("link_to_RGEE"), _("link_to_RGEE"))
-    return Paragraph('''<para> %s </para>''' % legend_text, _build_legend_block_style())
-
-
-def _build_legend_block_style():
-    style = ParagraphStyle('legend')
-    style.textColor = 'grey'
-    style.borderColor = 'grey'
-    style.borderWidth = 1
-    style.alignment = TA_CENTER
-    style.fontSize = 8
-    style.borderPadding = 5
-    return style
 
 
 def _students_table_header():
@@ -247,7 +203,7 @@ def _get_coordinator_location_text(address):
 
 
 def _get_coordinator_title_text():
-    return '<b>%s :</b>' % _('learning_unit_responsible')
+    return '<b>{} :</b>'.format(_('learning_unit_responsible'))
 
 
 def _get_coordinator_text(coordinator):
@@ -362,3 +318,36 @@ def _build_signature_paragraph():
                     <font size=10>%s</font>
                    ''' % (_('done_at'), _('the'), _('signature')), p_signature)
     return paragraph_signature
+
+
+def _build_legend_block(decimal_scores):
+    legend_text = _('justification_legend') % mdl.exam_enrollment.justification_label_authorized()
+    legend_text += "<br/>%s" % (str(_('score_legend') % "0 - 20"))
+    if decimal_scores:
+        legend_text += "<br/><font color=red>%s</font>" % _('authorized_decimal_for_this_activity')
+    else:
+        legend_text += "<br/><font color=red>%s</font>" % _('unauthorized_decimal_for_this_activity')
+
+    legend_text += '''<br/> %s : <a href="%s"><font color=blue><u>%s</u></font></a>''' \
+                   % (_("in_accordance_to_regulation"), _("link_to_RGEE"), _("link_to_RGEE"))
+    return Paragraph('''<para> %s </para>''' % legend_text, _build_legend_block_style())
+
+
+def _build_legend_block_style():
+    style = ParagraphStyle('legend')
+    style.textColor = 'grey'
+    style.borderColor = 'grey'
+    style.borderWidth = 1
+    style.alignment = TA_CENTER
+    style.fontSize = 8
+    style.borderPadding = 5
+    return style
+
+
+def _write_footer(canvas, doc, styles):
+    printing_date = datetime.datetime.now()
+    printing_date = printing_date.strftime(DATE_FORMAT)
+    pageinfo = "%s : %s" % (_('printing_date'), printing_date)
+    footer = Paragraph(''' <para align=right>Page %d - %s </para>''' % (doc.page, pageinfo), styles['Normal'])
+    w, h = footer.wrap(doc.width, doc.bottomMargin)
+    footer.drawOn(canvas, doc.leftMargin, h)
