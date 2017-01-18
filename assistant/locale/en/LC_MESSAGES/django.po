@@ -289,6 +289,9 @@ msgstr "Research percentage"
 msgid "research_short_name"
 msgstr "RES"
 
+msgid "result"
+msgstr "result(s)"
+
 msgid "save"
 msgstr "Save"
 

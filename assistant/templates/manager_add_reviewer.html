@@ -40,6 +40,23 @@
     <h3>{% trans 'assistantship_mandate_renewal' %} {{ year|add:1 }}</h3>
 </div>
 <div class="panel panel-default">
+	<div class="panel-body">
+		{% csrf_token %}
+		<div class="row">
+			<div class="col-md-3">
+
+				<div class="col-md-3">
+					<input type = "text" id = "id_search_string" name="id_search_string" value = "" Title="{% trans 'Name_or_email_adresse'%}" />
+				</div>
+			</div>
+			<div class="col-md-3">
+				<button class="btn btn-primary" title="{% trans 'search'%}" name="id_bt_search_reviewer" id="id_bt_search_reviewer">
+					<span class="glyphicon glyphicon-search" aria-hidden="true"></span> {% trans 'research'%}</button>
+			</div>
+		</div>
+	</div>
+
+
     <div class="panel-body">
         <form method="POST" action="{% url 'reviewer_add' %}">
         {{ form.non_field_errors }}
@@ -52,7 +69,9 @@
 			    <div class="col-md-3">
 				    <div class="controls"  onChange="print_email();">
 				        <label for="txt_person">{% trans 'person' %}</label>
-				        {{ form.person }}<font class="error">{{ form.person.errors }}</font>
+				        <select id="id_person" name="person">
+                        <option value="" selected="selected">---------</option>
+                        </select><font class="error">{{ form.person.errors }}</font>
 				    </div>
 				    <div class="col-md-3">
 					    <div id="email_person"></div>
@@ -96,5 +115,30 @@ window.onload = function() {
     Hide();
     print_email();
 };
+
+document.getElementById("id_bt_search_reviewer").onclick = function() {
+$('#id_person').empty();
+$('#id_person').append('<option value=" ">---------</option>');
+var id_search_string = $('#id_search_string').val();
+var json_persons_lenght = '0';
+        if(id_search_string != "")
+        {
+            var uri = "/assistants/get_persones/" + id_search_string
+            $.ajax({ url: uri }).then(function(data)
+            {
+                var jsonData = data.persones_json;
+                for (var i = 0; i < jsonData.length; i++) {
+                    var ligne = jsonData[i];
+                    content = "<option value="+ligne.email+">" + ligne.last_name +", "+ligne.first_name+"</option>";
+                    $('#id_person').append(content);
+                }
+
+            document.getElementById('email_person').innerHTML = jsonData.length + '&nbsp;'+"{% trans 'result'%}";
+
+            });
+        };
+
+}
+
 </script>
 {% endblock %}

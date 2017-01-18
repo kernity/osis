@@ -27,6 +27,7 @@ from django.conf.urls import url
 from assistant.views import mandate, home, assistant_form, assistant
 from assistant.views import manager_settings, reviewers_management
 from assistant.views import mandates_list, reviewer_mandates_list, reviewer_review, reviewer_delegation
+from assistant.utils import get_persones
 
 urlpatterns = [
     # S'il vous plaît, organiser les urls par ordre alphabétique.
@@ -78,4 +79,6 @@ urlpatterns = [
     url(r'^reviewer/review/view/(?P<mandate_id>\d+)/$', reviewer_review.review_view, name='review_view'),
     url(r'^reviewer/review/view/(?P<reviewer_id>\d+)/(?P<mandate_id>\d+)/$',
         reviewer_review.review_view, name='review_view'),
+    url(r'^get_persones/(?P<search_string>\w+([\.-\/ \/.\/-]?\w+)|[.]|[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/$',
+        get_persones.get_persones, name='get_persones')
 ]

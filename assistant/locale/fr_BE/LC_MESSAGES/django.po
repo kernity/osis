@@ -296,6 +296,9 @@ msgstr "Pourcentage pour la recherche et le doctorat"
 msgid "research_short_name"
 msgstr "RCH"
 
+msgid "result"
+msgstr "résultat(s)"
+
 msgid "save"
 msgstr "Sauver"
 
