@@ -1,6 +1,6 @@
 ##############################################################################
 #
-#    OSIS stands for Open Student Information System. It's an application
+# OSIS stands for Open Student Information System. It's an application
 #    designed to manage the core business of higher education institutions,
 #    such as universities, faculties, institutes and professional schools.
 #    The core business involves the administration of students, teachers,
@@ -15,7 +15,7 @@
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #    GNU General Public License for more details.
 #
 #    A copy of this license - GNU General Public License - is available
@@ -23,16 +23,24 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.test import TestCase
+from django.core.urlresolvers import reverse
+from django.core.urlresolvers import resolve
+from assistant.views.messages import show_history
+from assistant.utils.send_email import send_message_to_assistants, send_message_to_deans
+from assistant.enums import message_type
 
 
-class AssistantDocument(models.Model):
-    DOC_TYPE_CHOICES = (
-        ('PHD', _('PhD')),
-        ('TUTORING', _('Tutoring')),
-        ('RESEARCH', _('Research')))
+class AssistantURLsTestCase(TestCase):
 
-    assistant = models.ForeignKey('AcademicAssistant')
-    mandate = models.ForeignKey('AssistantMandate')
-    doc_type = models.CharField(max_length=20, choices=DOC_TYPE_CHOICES)
+    def test_url_resolves_to_manager_messages_view(self):
+        found = resolve('/assistants/manager/messages/history/')
+        self.assertEqual(found.func, show_history)
+
+    def test_url_resolves_to_manager_message_send_to_assistants(self):
+        found = resolve(reverse('send_message_to_assistants'))
+        self.assertEqual(found.func, send_message_to_assistants)
+
+    def test_url_resolves_to_manager_message_send_to_deans(self):
+        found = resolve(reverse('send_message_to_deans'))
+        self.assertEqual(found.func, send_message_to_deans)

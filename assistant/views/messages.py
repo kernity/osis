@@ -23,6 +23,10 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.test import TestCase
+from django.shortcuts import render
+from assistant.models.message import find_all
+from assistant.enums import message_type
 
-# Create your tests here.
+
+def show_history(request):
+    return render(request,'messages.html', {'sent_messages': find_all(), 'message_type': message_type})

@@ -1,3 +1,4 @@
+
 ##############################################################################
 #
 #    OSIS stands for Open Student Information System. It's an application
@@ -23,30 +24,28 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-
-from django import forms
-from django.forms import ModelForm
-from internship.models import Organization, OrganizationAddress, Period
-from functools import partial
-DateInput = partial(forms.DateInput, {'class': 'datepicker'})
+from django.test import TestCase, Client
+from base.models.person import Person
+import json
 
 
-class OrganizationForm(ModelForm):
-    class Meta:
-        model = Organization
-        fields = ['name', 'website', 'reference']
+class GetPersonsTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.person = Person.objects.create(first_name='person1', last_name='test', email='person1@test.com')
+        self.person.save()
+        self.person = Person.objects.create(first_name='person2', last_name='test', email='person2@test.com')
+        self.person.save()
 
 
-class OrganizationAddressForm(ModelForm):
-    class Meta:
-        model = OrganizationAddress
-        fields = ['location', 'postal_code', 'city', 'country', 'latitude', 'longitude']
+    def test_get_persons(self):
+        response = self.client.generic(method='get', path='/assistants/api/get_persons/?term=on2',
+                                       HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(data[0]['value'], 'person2@test.com')
+        self.assertEqual(len(data), 1)
 
-
-class PeriodForm(ModelForm):
-    class Meta:
-        model = Period
-        fields = ['name', 'date_start', 'date_end']
-        widgets = {'date_start': forms.DateInput(format='%d/%m/%Y'),
-                   'date_end': forms.DateInput(format='%d/%m/%Y'),
-                   }
+        response = self.client.generic(method='get', path='/assistants/api/get_persons/?term=test',
+                                       HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(len(data), 2)

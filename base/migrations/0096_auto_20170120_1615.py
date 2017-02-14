@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0093_academiccalendar_uuid'),
+        ('base', '0095_synchronization'),
     ]
 
     operations = [
@@ -84,7 +84,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='learningunit',
             name='periodicity',
-            field=models.CharField(blank=True, choices=[('ANNUEL', 'ANNUEL'), ('BISANNUEL_PAIR', 'BISANNUEL_PAIR'), ('BISANNUEL_IMPAIR', 'BISANNUEL_IMPAIR')], max_length=10, null=True),
+            field=models.CharField(blank=True, choices=[('ANNUAL', 'ANNUAL'), ('BIENNIAL_EVEN', 'BIENNIAL_EVEN'),
+                                                        ('BIENNIAL_ODD', 'BIENNIAL_ODD')], max_length=10, null=True),
         ),
         migrations.AddField(
             model_name='learningunityear',
@@ -114,13 +115,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='learningunitcomponent',
             name='learning_component_year',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='base.LearningComponentYear'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='base.LearningComponentYear', blank=True, null=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='learningunityear',
             name='learning_container_year',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='base.LearningContainerYear'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='base.LearningContainerYear', blank=True, null=True),
             preserve_default=False,
         ),
     ]
