@@ -26,10 +26,6 @@
 from django.db import models
 from django.contrib import admin
 
-class LearningUnitComponentClassAdmin(admin.ModelAdmin):
-    list_display = ('learning_unit_component', 'learning_class_year')
-    fieldsets = ((None, {'fields': ('learning_unit_component', 'learning_class_year')}),)
-
 class LearningUnitComponentClass(models.Model):
     learning_unit_component = models.ForeignKey('LearningUnitComponent')
     learning_unit_year = models.ForeignKey('LearningClassYear')

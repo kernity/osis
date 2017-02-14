@@ -60,9 +60,6 @@ admin.site.register(learning_unit.LearningUnit,
 admin.site.register(learning_unit_component.LearningUnitComponent,
                     learning_unit_component.LearningUnitComponentAdmin)
 
-admin.site.register(learning_unit_component_class.LearningUnitComponentClass,
-                    learning_unit_component_class.LearningUnitComponentClassAdmin)
-
 admin.site.register(learning_unit_enrollment.LearningUnitEnrollment,
                     learning_unit_enrollment.LearningUnitEnrollmentAdmin)
 
