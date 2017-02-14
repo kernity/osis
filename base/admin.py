@@ -45,23 +45,23 @@ admin.site.register(exam_enrollment.ExamEnrollmentHistory,
 admin.site.register(external_offer.ExternalOffer,
                     external_offer.ExternalOfferAdmin)
 
-admin.site.register(learning_unit_component.LearningClass,
-                    learning_unit_component.LearningClassAdmin)
+admin.site.register(learning_class.LearningClass,
+                    learning_class.LearningClassAdmin)
 
-admin.site.register(learning_unit_component.LearningClassYear,
-                    learning_unit_component.LearningClassYearAdmin)
+admin.site.register(learning_class_year.LearningClassYear,
+                    learning_class_year.LearningClassYearAdmin)
 
-admin.site.register(learning_unit.LearningComponent,
-                    learning_unit.LearningComponentAdmin)
+admin.site.register(learning_component.LearningComponent,
+                    learning_component.LearningComponentAdmin)
 
-admin.site.register(learning_unit.LearningComponentYear,
-                    learning_unit.LearningComponentYearAdmin)
+admin.site.register(learning_component_year.LearningComponentYear,
+                    learning_component_year.LearningComponentYearAdmin)
 
-admin.site.register(learning_unit_component.LearningContainer,
-                    learning_unit_component.LearningContainerAdmin)
+admin.site.register(learning_container.LearningContainer,
+                    learning_container.LearningContainerAdmin)
 
-admin.site.register(learning_unit_component.LearningContainerYear,
-                    learning_unit_component.LearningContainerYearAdmin)
+admin.site.register(learning_container_year.LearningContainerYear,
+                    learning_container_year.LearningContainerYearAdmin)
 
 admin.site.register(learning_unit.LearningUnit,
                     learning_unit.LearningUnitAdmin)
@@ -69,8 +69,8 @@ admin.site.register(learning_unit.LearningUnit,
 admin.site.register(learning_unit_component.LearningUnitComponent,
                     learning_unit_component.LearningUnitComponentAdmin)
 
-admin.site.register(learning_unit_component.LearningUnitComponentYear,
-                    learning_unit_component.LearningUnitComponentYearAdmin)
+admin.site.register(learning_unit_component_class.LearningUnitComponentClass,
+                    learning_unit_component_class.LearningUnitComponentClassAdmin)
 
 admin.site.register(learning_unit_enrollment.LearningUnitEnrollment,
                     learning_unit_enrollment.LearningUnitEnrollmentAdmin)
