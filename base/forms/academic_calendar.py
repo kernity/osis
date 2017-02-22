@@ -23,13 +23,17 @@
 #    see http://www.gnu.org/licenses/.
 #
 ##############################################################################
-from django.forms import ModelForm
+from django.conf import settings
+from django.forms import ModelForm, DateField, DateInput
 from base.models import academic_calendar, offer_year_calendar
 from django.utils.translation import ugettext as trans
 from base.models.offer_year_calendar import save_from_academic_calendar
 
 
 class AcademicCalendarForm(ModelForm):
+    start_date = DateField(input_formats=settings.DATE_INPUT_FORMATS)
+    end_date = DateField(input_formats=settings.DATE_INPUT_FORMATS)
+
     class Meta:
         model = academic_calendar.AcademicCalendar
         exclude = ['external_id', 'changed']
