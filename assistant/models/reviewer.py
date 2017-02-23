@@ -30,7 +30,6 @@ from django.db.models import Q
 from assistant.models import mandate_structure, assistant_mandate
 from assistant.enums import reviewer_role
 
-
 class ReviewerAdmin(admin.ModelAdmin):
     list_display = ('person', 'structure', 'role')
     fieldsets = (
@@ -49,6 +48,7 @@ class ReviewerAdmin(admin.ModelAdmin):
 class Reviewer(models.Model):
     person = models.ForeignKey('base.Person')
     role = models.CharField(max_length=30, choices=reviewer_role.ROLE_CHOICES)
+    is_phd_supervisor = models.BooleanField(default=False)
     structure = models.ForeignKey('base.Structure', blank=True, null=True)
 
     def __str__(self):
