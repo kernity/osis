@@ -62,11 +62,9 @@ def get_common_context_proposition_dissertation_detail(request, proposition):
     person = mdl.person.find_by_user(request.user)
     adv = adviser.search_by_person(person)
     count_use = dissertation.count_by_proposition(proposition)
-    percent = count_use * 100 / proposition.max_number_student if proposition.max_number_student else 0
+    percent = (count_use * 100 / proposition.max_number_student) if proposition.max_number_student else 0
     files = proposition_document_file.find_by_proposition(proposition)
-    filename = ""
-    for file in files:
-        filename = file.document_file.file_name
+    filename = files.last().document_file.file_name if files else ""
     count_proposition_role = proposition_role.count_by_proposition(proposition)
     if not count_proposition_role:
         proposition_role.add('PROMOTEUR', proposition.author, proposition)
