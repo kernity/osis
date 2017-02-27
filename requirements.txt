@@ -10,5 +10,6 @@ psycopg2==2.6.2
 reportlab==3.2.0
 selenium==2.53.2
 django-analytical==2.2.2
+faker==0.7.9
 
 -r ./osis_common/requirements.txt

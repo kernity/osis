@@ -3,7 +3,7 @@
     "model": "base.academiccalendar",
     "pk": 1,
     "fields": {
-      "external_id": "2015_Submission of exam scores - exam session 1",
+      "external_id": "2015_ Submission of exam scores - exam session1",
       "changed": "2016-05-03T09:57:28.828Z",
       "academic_year": 1,
       "title": "Submission of exam scores - exam session 1",
