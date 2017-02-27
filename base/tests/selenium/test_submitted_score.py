@@ -8,42 +8,42 @@ class SubmitScoreTest(StaticLiveServerTestCase):
     fixtures = ['tutor.json','attribution.json']
 
     @classmethod
-    def setUpClass(cls):
-        super(SubmitScoreTest, cls).setUpClass()
-        cls.driver = WebDriver()
-        cls.driver.implicitly_wait(15)
+    def setUpClass(self):
+        super(SubmitScoreTest, self).setUpClass()
+        self.selenium = WebDriver()
+        self.selenium.implicitly_wait(15)
         # Add records to test DB, to replace this code by django command
         # populate_test_db()
 
 
-    def tearDownClass(cls):
-        cls.driver.quit()
-        super(SubmitScoreTest, cls).tearDownClass()
+    def tearDownClass(self):
+        self.selenium.quit()
+        super(SubmitScoreTest, self).tearDownClass()
 
 
-    def test_encoding_home_page_title(cls):
+    def test_encoding_home_page_title(self):
         #Tests that Home is loading properly
-        cls.driver.get(cls.driver.get(url+" assessments/online/62504"))
-        cls.assertIn('OSIS', cls.driver.title)
+        self.selenium.get(self.selenium.get(url+" assessments/online/62504"))
+        self.assertIn('OSIS', self.selenium.title)
 
 
-    def test_submit_scores(cls):
-        cls.driver.get(url + "assessments/scores_encoding/search/?offer_year_id=2359")
-        cls.driver.find_element_by_id("lnk_score_encoding").click()
-        cls.driver.find_element_by_id("lnk_LCHM1111").click()
-        cls.assertIn('pas encore été soumises', cls.driver.find_element_by_tag_name('body'))
+    def test_submit_scores(self):
+        self.selenium.get(url + "assessments/scores_encoding/search/?offer_year_id=2359")
+        self.selenium.find_element_by_id("lnk_score_encoding").click()
+        self.selenium.find_element_by_id("lnk_LCHM1111").click()
+        self.assertIn('pas encore été soumises', self.selenium.find_element_by_tag_name('body'))
         time.sleep(5)
-        cls.driver.find_element_by_id ("bt_score_submission_modal").click()
-        cls.driver.find_element_by_id("lnk_post_scores_submission_btn").click()
-        cls.driver.find_element_by_id("lnk_post_scores_submission_btn").click()
-        cls.driver.implicitly_wait(3)
-        cls.assertNotIn('pas encore été soumises', cls.driver.find_element_by_tag_name('body'))
-        cls.alert_and_close_alert()
+        self.selenium.find_element_by_id ("bt_score_submission_modal").click()
+        self.selenium.find_element_by_id("lnk_post_scores_submission_btn").click()
+        self.selenium.find_element_by_id("lnk_post_scores_submission_btn").click()
+        self.selenium.implicitly_wait(3)
+        self.assertNotIn('pas encore été soumises', cls.driver.find_element_by_tag_name('body'))
+        self.alert_and_close_alert()
 
 
     def alert_and_close_alert(self):
-        alert = self.driver.switch_to_alert()
+        alert =self.selenium.switch_to_alert()
         alert_text = alert.text
-        self.driver.execute_script(alert_text)
+        self.selenium.execute_script(alert_text)
         time.sleep(5)
         alert.accept()

@@ -10,28 +10,28 @@ class ProgresBarScoresTest(StaticLiveServerTestCase):
                 'offer_enrollment.json', 'learning_unit_enrollment.json', 'exam_enrollment.json']
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(self):
         super(ProgresBarScoresTest, cls).setUpClass()
-        cls.driver = WebDriver()
-        cls.driver.implicitly_wait(15)
+        self.selenium = WebDriver()
+        self.selenium.implicitly_wait(15)
         # Add records to test DB, to replace this code by django command
         # populate_test_db()
 
 
-    def tearDownClass(cls):
-        cls.driver.quit()
-        super(ProgresBarScoresTest, cls).tearDownClass()
+    def tearDownClass(self):
+        self.selenium.quit()
+        super(ProgresBarScoresTest, self).tearDownClass()
 
 
-    def test_encoding_home_page_title(cls):
+    def test_encoding_home_page_title(self):
 
         #Tests that Home is loading properly
-        cls.driver.get(cls.driver.get(url+" assessments /"))
-        cls.assertIn('OSIS', cls.driver.title)
+        self.selenium.get(self.selenium.get(url+" assessments /"))
+        self.assertIn('OSIS', self.selenium.title)
 
-    def test_is_present_progres_bar(cls):
+    def test_is_present_progres_bar(self):
         # self.driver.get("https: // dev.osis.uclouvain.be / studies / assessments /")
-        cls.test_encoding_home_page_title()
-        present = cls.driver.find_element_by_class_name('progress')
-        cls.assertIsNotNone(present)
-        cls.driver.implicitly_wait(30)
+        self.test_encoding_home_page_title()
+        present = self.selenium.find_element_by_class_name('progress')
+        self.assertIsNotNone(present)
+        self.selenium.implicitly_wait(30)
