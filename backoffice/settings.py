@@ -115,9 +115,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'osis_backend_dev',
-        'USER': "postgres" if os.environ.get("ENV") == "test" else  'osis_usr',
-        'PASSWORD': "" if os.environ.get("ENV") == "test" else 'osis',
-        'HOST': '127.0.0.1',
+        'USER': "postgres",
+        'PASSWORD': "",
+        'HOST': 'db',
         'PORT': '5432',
     },
 }
@@ -242,7 +242,7 @@ CKEDITOR_CONFIGS = {
 # Uncomment the configuration if you want to use the queue system
 # The queue system uses RabbitMq queues to communicate with other application (ex : osis)
 QUEUES = {
-     'QUEUE_URL': 'localhost',
+     'QUEUE_URL': 'rabbit',
      'QUEUE_USER': 'guest',
      'QUEUE_PASSWORD': 'guest',
      'QUEUE_PORT': 5672,
