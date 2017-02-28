@@ -3,7 +3,7 @@ import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-url = "https:// dev.osis.uclouvain.be/studies/"
+url = "http://localhost:8000/studies/"
 
 
 class InvalidScoreTest(StaticLiveServerTestCase):
@@ -27,13 +27,13 @@ class InvalidScoreTest(StaticLiveServerTestCase):
 
     def test_encoding_home_page_title(self):
         #Tests that Home is loading properly
-         self.selenium.get( self.selenium.get(url+" assessments/online/62504"))
+         self.selenium.get( self.selenium.get(url+"assessments/online/62504"))
          self.assertIn('OSIS',  self.selenium.title)
 
 
     def test_is_invalid_score(self):
          self.test_encoding_home_page_title()
-         self.selenium.get(url + " assessments /scores_encoding/search/?offer_year_id=2359")
+         self.selenium.get(url + "assessments/scores_encoding/search/?offer_year_id=2359")
          self.selenium.find_element_by_id("lnk_LCHM1111").click()
          self.selenium.implicitly_wait(10)  # seconds
          self.selenium.find_element_by_id("num_score_1374160").clear()

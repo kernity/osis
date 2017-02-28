@@ -4,7 +4,7 @@ import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-url = "https://dev.osis.uclouvain.be/"
+url = "http://localhost:8000/"
 justification='AT?'
 class ScoreOrJustificationTest(StaticLiveServerTestCase):
     fixtures = ['academic_year.json', 'academic_calendar.json', 'session_exam.json',
@@ -15,7 +15,7 @@ class ScoreOrJustificationTest(StaticLiveServerTestCase):
 
     @classmethod
     def setUpClass(self):
-        super(ScoreOrJustificationTest, cls).setUpClass()
+        super(ScoreOrJustificationTest, self).setUpClass()
         self.selenium = WebDriver()
         self.selenium.implicitly_wait(15)
         # Add records to test DB, to replace this code by django command
@@ -29,7 +29,7 @@ class ScoreOrJustificationTest(StaticLiveServerTestCase):
 
 
     def test_score_or_justification(self):
-        self.selenium.get(url + " assessments/scores_encoding/search/?offer_year_id=2359")
+        self.selenium.get(url + "assessments/scores_encoding/search/?offer_year_id=2359")
         self.assertIn('OSIS', self.selenium.title)
         self.selenium.find_element_by_id("lnk_LCHM1111").click()
         self.selenium.implicitly_wait(10)  # seconds
@@ -53,7 +53,7 @@ class ScoreOrJustificationTest(StaticLiveServerTestCase):
         #cls.alert_and_close_alert()
 
         #cours acceptant une note décimale: credits >=15
-        self.selenium.get(url + "/studies/assessments/scores_encoding/")
+        self.selenium.get(url + "studies/assessments/scores_encoding/")
         self.selenium.find_element_by_id("lnk_LENVI2199").click()
         self.selenium.find_element_by_id("lnk_encode").click()
         self.selenium.find_element_by_id("num_score_1418428").clear()

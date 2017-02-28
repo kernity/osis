@@ -1,7 +1,7 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-url = "https:// dev.osis.uclouvain.be/studies/"
+url = "http://localhost:8000/studies/"
 
 
 class CoursesPgmUserTest(StaticLiveServerTestCase):

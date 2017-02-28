@@ -5,7 +5,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 
 
-url = "https:// dev.osis.uclouvain.be/studies /"
+url = "http://localhost:8000/studies/"
 justification_code = 'AT?'
 
 class ScoreOrJustificationTest(StaticLiveServerTestCase):
@@ -36,7 +36,7 @@ class ScoreOrJustificationTest(StaticLiveServerTestCase):
         self.selenium.implicitly_wait(10)  # seconds
         self.selenium.find_element_by_id("lnk_highlight_studies/assessments/scores_encoding/").click()
         self.selenium.implicitly_wait(5)
-        self.assertIn("https://dev.osis.uclouvain.be/studies/assessments/scores_encoding/online/65418/", self.selenium.current_url)
+        self.assertIn(url+"assessments/scores_encoding/online/65418/", self.selenium.current_url)
         self.selenium.find_element_by_id("lnk_LENVI2199").click()
         self.selenium.implicitly_wait(5)
         self.selenium.find_element_by_id("lnk_scores_excel").click()

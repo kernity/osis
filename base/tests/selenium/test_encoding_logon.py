@@ -18,7 +18,7 @@ class TestLogonScoreEnconding(StaticLiveServerTestCase):
 
 
     def open_login_page(self):
-        url = 'https://dev.osis.uclouvain.be/'
+        url = 'http://localhost:8000'
         self.selenium.get(url)
         self.selenium.implicitly_wait(10) # seconds
 
