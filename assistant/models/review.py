@@ -57,7 +57,8 @@ def find_by_mandate(mandate_id):
 
 
 def find_review_for_mandate_by_role(mandate, role):
-    return Review.objects.filter(mandate=mandate).filter(reviewer__role__icontains=role.split('_', 1)[0]).first()
+    return Review.objects.filter(mandate=mandate).filter(status='DONE').\
+        filter(reviewer__role__icontains=role.split('_', 1)[0]).order_by('changed')
 
 
 def find_by_reviewer(reviewer):
@@ -65,8 +66,9 @@ def find_by_reviewer(reviewer):
 
 
 def find_by_reviewer_for_mandate(reviewer, mandate):
-    return Review.objects.get(reviewer=reviewer, mandate=mandate)
+    return Review.objects.get(reviewer=reviewer, mandate=mandate, status='IN_PROGRESS')
 
 
 def find_done_by_supervisor_for_mandate(mandate):
-    return Review.objects.get(reviewer=None, mandate=mandate, status='DONE')
+    return Review.objects.filter(mandate=mandate).filter(mandate__assistant__supervisor__isnull=False).\
+        filter(status='DONE').first()

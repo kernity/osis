@@ -30,6 +30,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from assistant.forms import *
 from assistant.models.enums import document_type
+from assistant.enums import reviewer_role
 from base.models import person_address, person
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -72,13 +73,7 @@ def form_part1_save(request, mandate_id):
     addresses = person_address.find_by_person(person.find_by_id(assistant.person.id))
     form = AssistantFormPart1(data=request.POST, instance=mandate)
     if form.is_valid():
-        if request.POST.get('person_id'):
-            this_assistant = form.save(commit=False)
-            supervisor = person.find_by_id(request.POST.get('person_id'))
-            this_assistant.supervisor = supervisor
-            this_assistant.save()
-        else:
-            form.save()
+        form.save()
         return form_part1_edit(request, mandate.id)
     else:
         return render(request, "assistant_form_part1.html", {'assistant': assistant, 'mandate': mandate,
@@ -170,7 +165,19 @@ def form_part3_save(request, mandate_id):
     elif request.method == 'POST':
         form = AssistantFormPart3(data=request.POST, instance=assistant, prefix='mand')
         if form.is_valid():
-            form.save()
+            if request.POST.get('person_id'):
+                this_assistant = form.save(commit=False)
+                supervisor_person = person.find_by_id(request.POST.get('person_id'))
+                reviewer.Reviewer.objects.get_or_create(person=supervisor_person)
+                current_reviewer = reviewer.find_by_person(supervisor_person)
+                current_reviewer.is_phd_supervisor = True
+                if current_reviewer.role == "":
+                    current_reviewer.role = reviewer_role.PHD_SUPERVISOR
+                current_reviewer.save()
+                this_assistant.supervisor = current_reviewer
+                this_assistant.save()
+            else:
+                form.save()
             return form_part3_edit(request, mandate.id)
         else:
             return render(request, "assistant_form_part3.html", {'assistant': assistant, 'mandate': mandate,
