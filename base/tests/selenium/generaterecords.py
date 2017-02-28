@@ -14,7 +14,7 @@ import datetime
 
 fake = Faker()
 
-def create_academic_year(self):
+def create_academic_year():
     start_date = datetime.datetime(2016, 9, 15)
     end_date = datetime.datetime(2017, 9, 14)
     year = start_date.year+'-'+end_date.year
@@ -23,13 +23,13 @@ def create_academic_year(self):
     return academic_year
 
 
-def create_organization(self):
+def create_organization():
     organisation = mdl_base.organization.Organization.objects.create(name='Université catholique de Louvain',
                                                                      acronym='UCL', reference='-',
                                                                      website='http://uclouvain.be', type='Main')
     return organisation
 
-def create_organization_adress(self, organisation,localisation,cp,city,country ):
+def create_organization_adress(organisation,localisation,cp,city,country ):
     organisation_adres = mdl_base.organization_address.OrganizationAddress.objects.create(organization=organisation,
                                                                                           label='-',
                                                                                           location=localisation,
@@ -39,28 +39,28 @@ def create_organization_adress(self, organisation,localisation,cp,city,country )
 
 
 
-def create_sector(self, acronym,title,organisation,type):
+def create_sector(acronym,title,organisation,type):
     structure_sector = mdl_base.structure.Structure.objects.create(acronym=acronym,
                                                                    title=title, organization=organisation, type=type)
     return structure_sector
 
-def create_structure(self,acronym,titre,structure_part_of,organisation,type):
+def create_structure(acronym,titre,structure_part_of,organisation,type):
     structure = mdl_base.structure.Structure.objects.create(acronym=acronym, title=titre,
                                                                 part_of=structure_part_of, organization=organisation,
                                                                 type=type)
     return structure
 
 
-def create_campus(self,name,organisation):
+def create_campus(name,organisation):
     campus = mdl_base.campus.Campus.objects.create(name=name, organization=organisation)
     return campus
 
 
-def create_offer(self,title):
+def create_offer(title):
     offer = mdl_base.offer.Offer.objects.create(title=title)
     return offer
 
-def create_offer_year(self,offer,academic_year,structure_sector,structure_fac,structure_pgm,acronym,title,title_short,grade,
+def create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_pgm,acronym,title,title_short,grade,
                        recipient,location, postal_code,city, phone, fax,country,campus):
     offer_year = mdl_base.offer_year.OfferYear.objects.create(offer=offer, academic_year=academic_year,
                                                               entity_administration=structure_sector,
@@ -76,11 +76,11 @@ def create_offer_year(self,offer,academic_year,structure_sector,structure_fac,st
                                                               city=city, country=country,
                                                               phone=phone, fax=fax, campus=campus)
 
-def create_leaning_unit(self,acronym,title,start_year, end_year):
+def create_leaning_unit(acronym,title,start_year, end_year):
     leaning_unit = mdl_base.learning_unit.LearningUnit.objects.create(acronym=acronym,title=title,start_year=start_year,end_year=end_year)
     return leaning_unit
 
-def create_leaning_unit_year(self,academic_year,leaning_unit,acronym,title,credits):
+def create_leaning_unit_year(academic_year,leaning_unit,acronym,title,credits):
     decimal_scores=False
     if (credits >=15):
         decimal_scores =True
@@ -90,37 +90,37 @@ def create_leaning_unit_year(self,academic_year,leaning_unit,acronym,title,credi
     return leaning_unit_year
 
 
-def create_user(self,username, password, email):
+def create_user(username, password, email):
     user = User.objects.create(username=username, password=password, email=email)
     return user
 
 
-def create_person(self,user):
+def create_person(user):
     person = Person.objects.create(user=user, first_name=fake.first_name(),
                                                last_name=fake.last_name())
     return person
 
-def create_program_manager(self,person,offer_year):
+def create_program_manager(person,offer_year):
     program_manager = mdl_base.program_manager.ProgramManager.objects.create(person=person,offer_year=offer_year)
     return program_manager
 
-def create_tutor(self,person):
+def create_tutor(person):
     tutor = mdl_base.tutor.Tutor.objects.create(person=person)
     return tutor
 
-def create_attribution(self,learning_unit_year,tutor):
+def create_attribution(learning_unit_year,tutor):
     attribution = mdl_attribution.attribution.Attribution.objects.create(learning_unit_year = learning_unit_year,tutor=tutor)
     return attribution
 
-def create_student(self,person):
+def create_student(person):
     student = mdl_base.student.Student.objects.create(person=person, registration_id=fake.ean(length=8))
     return student
 
-def create_offer_enrollement(self,student,offer_year):
+def create_offer_enrollement(student,offer_year):
     offer_enrollment = mdl_base.offer_enrollment.OfferEnrollment.objects.create( student=student,offer_year=offer_year)
     return offer_enrollment
 
-def create_learning_unit_enrollement(self,learning_unit_year,offer_enrollment):
+def create_learning_unit_enrollement(learning_unit_year,offer_enrollment):
     learning_unit_enrollement = mdl_base.learning_unit_enrollment.LearningUnitEnrollment.objects.create( learning_unit_year=learning_unit_year,offer_enrollment=offer_enrollment)
     return learning_unit_enrollement
 
@@ -143,74 +143,74 @@ class Command(BaseCommand):
         title_biol_leaning = 'Stage professionnel'
         end_leaning = 2099
 
-        academic_year = create_academic_year(self)
-        organisation = create_organization(self)
-        organisation_adres =  create_organization_adress(self,organisation,localisation_lln,cp_lln,city,country_be)
-        structure_sector =create_sector(self,'SST','Secteur des sciences et technologies',organisation,'SECTOR')
-        structure_fac = create_structure(self,'SC','Faculté des sciences',structure_sector,organisation,'FACULTY')
-        structure_pgm_chim = create_structure(self,'CHIM', 'Ecole de chimie',structure_fac,organisation,'PROGRAM_COMMISION')
-        structure_pgm_biol = create_structure(self, 'BIOL', 'Ecole de biologie', structure_fac, organisation,'PROGRAM_COMMISION')
-        campus = create_campus(self,'Louvain-la-Neuve', organisation)
-        offer = create_offer(self,'Bachelier en sciences')
-        offer_year_chim =create_offer_year(self,offer,academic_year,structure_sector,structure_fac,structure_pgm_chim,'CHIM11BA','Première année de bachelier en sciences chimiques',
+        academic_year = create_academic_year()
+        organisation = create_organization()
+        organisation_adres =  create_organization_adress(organisation,localisation_lln,cp_lln,city,country_be)
+        structure_sector =create_sector('SST','Secteur des sciences et technologies',organisation,'SECTOR')
+        structure_fac = create_structure('SC','Faculté des sciences',structure_sector,organisation,'FACULTY')
+        structure_pgm_chim = create_structure('CHIM', 'Ecole de chimie',structure_fac,organisation,'PROGRAM_COMMISION')
+        structure_pgm_biol = create_structure('BIOL', 'Ecole de biologie', structure_fac, organisation,'PROGRAM_COMMISION')
+        campus = create_campus('Louvain-la-Neuve', organisation)
+        offer = create_offer('Bachelier en sciences')
+        offer_year_chim =create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_pgm_chim,'CHIM11BA','Première année de bachelier en sciences chimiques',
                                       'I Ba en scs chimiques','Bachelier',recipient_sc,adres_sc,cp_lln,localisation_lln,tel_sc ,fax_sc,country_be,campus)
-        offer_year_biol = create_offer_year(self, offer, academic_year, structure_sector, structure_fac, structure_pgm_biol,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
+        offer_year_biol = create_offer_year(offer, academic_year, structure_sector, structure_fac, structure_pgm_biol,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
                                        'I Ba en scs biologiques', 'Bachelier',recipient_sc,adres_sc ,cp_lln,localisation_lln, tel_sc,fax_sc,country_be,campus)
         credits = 10
 
         #decimal score not allowed
-        leaning_unit_chim = create_leaning_unit(self,acronym_chim_leaning,title_chim_leaning,2004,end_leaning)
-        leaning_unit_year_chim = create_leaning_unit_year(self, academic_year,
+        leaning_unit_chim = create_leaning_unit(acronym_chim_leaning,title_chim_leaning,2004,end_leaning)
+        leaning_unit_year_chim = create_leaning_unit_year(academic_year,
                                                                                leaning_unit_chim,
                                                                                acronym_chim_leaning, title_chim_leaning,
                                                                                credits)
         credits = 20
         #decimal score allowed
-        leaning_unit_biol =  create_leaning_unit(self,acronym_biol_leaning,title_biol_leaning,2007,end_leaning)
-        leaning_unit_year_biol = create_leaning_unit_year(self,academic_year,leaning_unit_biol,acronym_biol_leaning,title_biol_leaning,credits)
+        leaning_unit_biol =  create_leaning_unit(acronym_biol_leaning,title_biol_leaning,2007,end_leaning)
+        leaning_unit_year_biol = create_leaning_unit_year(academic_year,leaning_unit_biol,acronym_biol_leaning,title_biol_leaning,credits)
 
 
         #program manager
-        user_pgm_manager = create_user(self,'evase','evase','evase@gmail.com')
-        person_pgm_manager = create_person(self,user_pgm_manager)
-        program_manager_chim =create_program_manager(self,person_pgm_manager,offer_year_chim)
-        program_manager_biol = create_program_manager(self, person_pgm_manager, offer_year_biol)
+        user_pgm_manager = create_user('evase','evase','evase@gmail.com')
+        person_pgm_manager = create_person(user_pgm_manager)
+        program_manager_chim =create_program_manager(person_pgm_manager,offer_year_chim)
+        program_manager_biol = create_program_manager(person_pgm_manager, offer_year_biol)
 
         #prof leader
-        user_chim_leaning_unit_tutor_leader =create_user(self,'evaseLchim','evaseLchim','evaseevaseChim@gmail.com')
-        person_chim_leaning_unit_tutor_leader =create_person(self,user_chim_leaning_unit_tutor_leader)
-        tutor_chim_leaning_unit = create_tutor(self,person_chim_leaning_unit_tutor_leader) #tutor and leader of lchm1111
-        create_attribution(self, leaning_unit_chim , tutor_chim_leaning_unit)
+        user_chim_leaning_unit_tutor_leader =create_user('evaseLchim','evaseLchim','evaseevaseChim@gmail.com')
+        person_chim_leaning_unit_tutor_leader =create_person(user_chim_leaning_unit_tutor_leader)
+        tutor_chim_leaning_unit = create_tutor(person_chim_leaning_unit_tutor_leader) #tutor and leader of lchm1111
+        create_attribution(leaning_unit_chim , tutor_chim_leaning_unit)
 
 
-        user_biol_leaning_unit_tutor_leader = create_user(self, 'evaseLbiol', 'evaseLbiol', 'evaseevaseBiol@gmail.com')
-        person_biol_leaning_unit_tutor_leader = create_person(self, user_biol_leaning_unit_tutor_leader)
-        tutor_biol_leaning_unit = create_tutor(self, person_biol_leaning_unit_tutor_leader)  # tutor and leader of LENVI2199
-        create_attribution(self, leaning_unit_biol, tutor_biol_leaning_unit)
+        user_biol_leaning_unit_tutor_leader = create_user('evaseLbiol', 'evaseLbiol', 'evaseevaseBiol@gmail.com')
+        person_biol_leaning_unit_tutor_leader = create_person(user_biol_leaning_unit_tutor_leader)
+        tutor_biol_leaning_unit = create_tutor(person_biol_leaning_unit_tutor_leader)  # tutor and leader of LENVI2199
+        create_attribution(leaning_unit_biol, tutor_biol_leaning_unit)
         #prof
-        user_chim_leaning_unit_tutor= create_user(self, 'evaseTchim', 'evaseTchim', 'evase@gmail.com')
-        person_chim_leaning_unit_tutor = create_person(self, user_chim_leaning_unit_tutor)
-        tutor2_chim_leaning_unit = create_tutor(self, person_chim_leaning_unit_tutor)  # tutor  of lchm1111
-        create_attribution(self, leaning_unit_chim, tutor2_chim_leaning_unit)
+        user_chim_leaning_unit_tutor= create_user('evaseTchim', 'evaseTchim', 'evase@gmail.com')
+        person_chim_leaning_unit_tutor = create_person(user_chim_leaning_unit_tutor)
+        tutor2_chim_leaning_unit = create_tutor(person_chim_leaning_unit_tutor)  # tutor  of lchm1111
+        create_attribution(leaning_unit_chim, tutor2_chim_leaning_unit)
 
 
-        user_biol_leaning_unit_tutor = create_user(self, 'evaseTbiol', 'evaseTbiol', 'evase@gmail.com')
-        person_bil_leaning_unit_tutor = create_person(self, user_biol_leaning_unit_tutor)
-        tutor2_biol_leaning_unit = create_tutor(self,person_bil_leaning_unit_tutor)  # tutor  of LENVI2199
-        create_attribution(self, leaning_unit_biol, tutor2_biol_leaning_unit)
+        user_biol_leaning_unit_tutor = create_user('evaseTbiol', 'evaseTbiol', 'evase@gmail.com')
+        person_bil_leaning_unit_tutor = create_person( user_biol_leaning_unit_tutor)
+        tutor2_biol_leaning_unit = create_tutor(person_bil_leaning_unit_tutor)  # tutor  of LENVI2199
+        create_attribution(leaning_unit_biol, tutor2_biol_leaning_unit)
 
 
         #student  and offer enrollment and  leaning unity
 
         for i in range(0, 200):
-            user = create_user(self,fake.user_name(),fake.password(),fake.email())
-            person = create_person(self,user)
-            student =create_student(self,person)
-            if(i%20==0):
-                create_learning_unit_enrollement(self, leaning_unit_year_chim,
-                                                 create_offer_enrollement(self, student, offer_year_chim))
+            user = create_user(fake.user_name(),fake.password(),fake.email())
+            person = create_person(user)
+            student =create_student(person)
+            if(i%2==0):
+                create_learning_unit_enrollement(leaning_unit_year_chim,
+                                                 create_offer_enrollement(student, offer_year_chim))
             else :
-                create_learning_unit_enrollement(self, leaning_unit_year_biol,
-                                                 create_offer_enrollement(self, student, offer_year_biol))
+                create_learning_unit_enrollement(leaning_unit_year_biol,
+                                                 create_offer_enrollement(student, offer_year_biol))
 
             print(student)
