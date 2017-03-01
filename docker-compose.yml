@@ -1,6 +1,6 @@
 version: '2'
 services:
-  backend:
+  backoffice:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
