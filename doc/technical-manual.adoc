@@ -153,7 +153,8 @@ Docker is a containerization platform that you can use to compose an application
 made from several services. You can use docker in development to get started
 quickly, or read the following sections to install all dependencies manually.
 
-First you need to pull osis and its submodule osis-common
+First you need to pull osis and its submodule osis-common:
+
     $ git pull git@github.com:uclouvain/osis.git
     $ cd osis
     $ git submodule init
@@ -170,7 +171,7 @@ Then all you have to do is to use docker compose to build the necessary containe
     $ docker-compose build
     $ docker-compose up
 
-Once this is done, you can just seed the database using the information from <<see-data>>.
+Once this is done, you can just seed the database using the information from <<seed-data>>.
 
 You can stop the whole application with:
 
