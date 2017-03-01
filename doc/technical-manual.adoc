@@ -147,7 +147,7 @@ In this case, you should change the url to the ssh one:
 The automatic authentication should work after that.
 
 [[using-docker]]
-== Using Docker
+=== Using Docker
 
 Docker is a containerization platform that you can use to compose an application
 made from several services. You can use docker in development to get started
