@@ -23,8 +23,9 @@ def create_academic_year():
     return academic_year
 
 def create_academic_calendar(academic_year, title, start_date, end_date):
-    an_academic_calendar = mdl_base.academic_calendar.AcademicCalendar.objects.create(academic_year=academic_year, start_date=start_date,
+    an_academic_calendar = mdl_base.academic_calendar.AcademicCalendar(academic_year=academic_year, start_date=start_date,
                                                               end_date=end_date,title=title)
+    an_academic_calendar.save(functions=[])
     return an_academic_calendar
 
 
@@ -39,6 +40,11 @@ def create_offer_year_calendar(offer_year, academic_calendar, start_date, end_da
                                               end_date=an_end_date
                                               )
     return offer_year_calendar
+
+def create_be_country():
+    country = mdl_reference.country.Country.objects.create( name='Belgique',iso_code='BE',nationality='Belge',cref_code='04')
+
+    return country
 
 
 def create_organization():
@@ -79,20 +85,19 @@ def create_offer(title):
     return offer
 
 def create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_pgm,acronym,title,title_short,grade,
-                       recipient,location, postal_code,city, phone, fax,country,campus):
+                       recipient,location, postal_code,city, country,campus):
     offer_year = mdl_base.offer_year.OfferYear.objects.create(offer=offer, academic_year=academic_year,
                                                               entity_administration=structure_sector,
                                                               entity_administration_fac=structure_fac,
                                                               entity_management=structure_pgm,
-                                                              ntity_management_fac=structure_fac,
                                                               acronym=acronym,
                                                               title=title,
                                                               title_short=title_short,
                                                               grade=grade, recipient=recipient,
                                                               location=location,
                                                               postal_code= postal_code,
-                                                              city=city, country=country,
-                                                              phone=phone, fax=fax, campus=campus)
+                                                              city=city, country=country,campus=campus)
+    return offer_year
 
 def create_learning_unit(acronym,title,start_year, end_year):
     learning_unit = mdl_base.learning_unit.LearningUnit.objects.create(acronym=acronym,title=title,start_year=start_year,end_year=end_year)
@@ -109,8 +114,18 @@ def create_learning_unit_year(academic_year,learning_unit,acronym,title,credits)
 
 
 def create_user(username, password, email):
-    user = User.objects.create(username=username, password=password, email=email)
+    an_username =username
+    while(check_user_id_exist(username)==True):
+        an_username=fake.user_name()
+    user = User.objects.create(username=an_username, password=password, email=email)
     return user
+
+def check_user_id_exist(a_username):
+    users = User.objects.filter(username=a_username)
+    if(users==None or len(users) == 0):
+        return False
+    return True
+
 
 
 def create_person(user):
@@ -136,11 +151,12 @@ def create_student(user):
     return student
 
 def create_offer_enrollement(student,offer_year):
-    offer_enrollment = mdl_base.offer_enrollment.OfferEnrollment.objects.create( student=student,offer_year=offer_year)
+    offer_enrollment = mdl_base.offer_enrollment.OfferEnrollment.objects.create(student=student,offer_year=offer_year, date_enrollment =datetime.date.today())
     return offer_enrollment
 
 def create_learning_unit_enrollement(learning_unit_year,offer_enrollment):
-    learning_unit_enrollement = mdl_base.learning_unit_enrollment.LearningUnitEnrollment.objects.create( learning_unit_year=learning_unit_year,offer_enrollment=offer_enrollment)
+    learning_unit_enrollement = mdl_base.learning_unit_enrollment.LearningUnitEnrollment.objects.create(learning_unit_year=learning_unit_year,offer_enrollment=offer_enrollment ,
+                                                                                                        date_enrollment =datetime.date.today())
     return learning_unit_enrollement
 
 def create_session_exam(number_session, learning_unit_year, offer_year_calendar):
@@ -173,7 +189,6 @@ class Command(BaseCommand):
         adres_sc = 'Place des Sciences, 2L6.06.01'
         localisation_lln = 'Louvain-la-Neuve'
         cp_lln = 1348
-        country_be = 'Belgique'
         city = 'Ottignies'
         acronym_chim_learning = 'LCHM1111'
         acronym_biol_learning = 'LENVI2199'
@@ -188,16 +203,17 @@ class Command(BaseCommand):
         delib_event ='Deliberation session'
 
         academic_year = create_academic_year()
-        academic_calendar_score_encoding_sess_1 = create_academic_calendar(academic_year,encoding_event+'1', datetime.datetime(2017, 1, 15), datetime.datetime(2017, 1, 30))
-        academic_calendar_score_encoding_sess_2 = create_academic_calendar(academic_year,encoding_event+'2', datetime.datetime(2017, 6, 20), datetime.datetime(2017, 6, 25))
-        academic_calendar_score_encoding_sess_3 = create_academic_calendar(academic_year,encoding_event+'3', datetime.datetime(2017, 9, 1), datetime.datetime(2017, 9, 15))
+        academic_calendar_score_encoding_sess_1 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,1), datetime.datetime(2017, 1, 15), datetime.datetime(2017, 1, 30))
+        academic_calendar_score_encoding_sess_2 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,2), datetime.datetime(2017, 6, 20), datetime.datetime(2017, 6, 25))
+        academic_calendar_score_encoding_sess_3 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,3), datetime.datetime(2017, 9, 1), datetime.datetime(2017, 9, 15))
 
-        academic_calendar_delibe_sess_1 = create_academic_calendar(academic_year,delib_event+'1', datetime.datetime(2017, 1, 30), datetime.datetime(2017, 2, 15))
-        academic_calendar_delibe_sess_2 = create_academic_calendar(academic_year,delib_event+'2', datetime.datetime(2017, 6, 25), datetime.datetime(2017, 6, 30))
-        academic_calendar_delibe_sess_3 = create_academic_calendar(academic_year,delib_event+'3', datetime.datetime(2017, 9, 15), datetime.datetime(2017, 9, 25))
+        academic_calendar_delibe_sess_1 = create_academic_calendar(academic_year,"%s%d"%(delib_event,1), datetime.datetime(2017, 1, 30), datetime.datetime(2017, 2, 15))
+        academic_calendar_delibe_sess_2 = create_academic_calendar(academic_year,"%s%d"%(delib_event,2), datetime.datetime(2017, 6, 25), datetime.datetime(2017, 6, 30))
+        academic_calendar_delibe_sess_3 = create_academic_calendar(academic_year,"%s%d"%(delib_event,3), datetime.datetime(2017, 9, 15), datetime.datetime(2017, 9, 25))
 
+        country =  create_be_country()
         organisation = create_organization()
-        organisation_adres =  create_organization_adress(organisation,localisation_lln,cp_lln,city,country_be)
+        organisation_adres =  create_organization_adress(organisation,localisation_lln,cp_lln,city,country)
         structure_sector =create_sector('SST','Secteur des sciences et technologies',organisation,'SECTOR')
         structure_fac = create_structure(acr_sc,'Faculté des sciences',structure_sector,organisation,'FACULTY')
         structure_pgm_chim = create_structure(acr_ch, 'Ecole de chimie',structure_fac,organisation,'PROGRAM_COMMISION')
@@ -205,10 +221,10 @@ class Command(BaseCommand):
         campus = create_campus(localisation_lln, organisation)
 
         offer = create_offer(bac_sc)
-        offer_year_chim =create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_pgm_chim,'CHIM11BA','Première année de bachelier en sciences chimiques',
-                                      'I Ba en scs chimiques','Bachelier',recipient_sc,adres_sc,cp_lln,localisation_lln,tel_sc ,fax_sc,country_be,campus)
-        offer_year_biol = create_offer_year(offer, academic_year, structure_sector, structure_fac, structure_pgm_biol,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
-                                       'I Ba en scs biologiques', 'Bachelier',recipient_sc,adres_sc ,cp_lln,localisation_lln, tel_sc,fax_sc,country_be,campus)
+        offer_year_chim =create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_fac,'CHIM11BA','Première année de bachelier en sciences chimiques',
+                                      'I Ba en scs chimiques','Bachelier',recipient_sc,adres_sc,cp_lln,localisation_lln,country,campus)
+        offer_year_biol = create_offer_year(offer, academic_year, structure_sector, structure_fac, structure_fac,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
+                                       'I Ba en scs biologiques', 'Bachelier',recipient_sc,adres_sc ,cp_lln,localisation_lln,country,campus)
 
         start_date=None
         end_date=None
@@ -245,33 +261,33 @@ class Command(BaseCommand):
 
 
         #program manager
-        user_pgm_manager = create_user('evase','evase','evase@gmail.com')
+        user_pgm_manager = create_user('eni','evase','evase@gmail.com')
         person_pgm_manager = create_person(user_pgm_manager)
         program_manager_chim =create_program_manager(person_pgm_manager,offer_year_chim)
         program_manager_biol = create_program_manager(person_pgm_manager, offer_year_biol)
 
         #prof leader
-        user_chim_learning_unit_tutor_leader =create_user('evaseLchim','evaseLchim','evaseChim@gmail.com')
+        user_chim_learning_unit_tutor_leader =create_user('eniLchim','evaseLchim','evaseChim@gmail.com')
         person_chim_learning_unit_tutor_leader =create_person(user_chim_learning_unit_tutor_leader)
         tutor_chim_learning_unit = create_tutor(person_chim_learning_unit_tutor_leader) #tutor and leader of lchm1111
-        create_attribution(learning_unit_chim , tutor_chim_learning_unit)
+        create_attribution(learning_unit_year_chim,tutor_chim_learning_unit)
 
 
-        user_biol_learning_unit_tutor_leader = create_user('evaseLbiol', 'evaseLbiol', 'evaseBiol@gmail.com')
+        user_biol_learning_unit_tutor_leader = create_user('eniLbiol', 'evaseLbiol', 'evaseBiol@gmail.com')
         person_biol_learning_unit_tutor_leader = create_person(user_biol_learning_unit_tutor_leader)
         tutor_biol_learning_unit = create_tutor(person_biol_learning_unit_tutor_leader)  # tutor and leader of LENVI2199
-        create_attribution(learning_unit_biol, tutor_biol_learning_unit)
+        create_attribution(learning_unit_year_biol, tutor_biol_learning_unit)
         #prof
-        user_chim_learning_unit_tutor= create_user('evaseTchim', 'evaseTchim', 'evase@gmail.com')
+        user_chim_learning_unit_tutor= create_user('eniTchim', 'evaseTchim', 'evase@gmail.com')
         person_chim_learning_unit_tutor = create_person(user_chim_learning_unit_tutor)
         tutor2_chim_learning_unit = create_tutor(person_chim_learning_unit_tutor)  # tutor  of lchm1111
-        create_attribution(learning_unit_chim, tutor2_chim_learning_unit)
+        create_attribution(learning_unit_year_chim, tutor2_chim_learning_unit)
 
 
-        user_biol_learning_unit_tutor = create_user('evaseTbiol', 'evaseTbiol', 'evase@gmail.com')
+        user_biol_learning_unit_tutor = create_user('eniTbiol', 'evaseTbiol', 'evase@gmail.com')
         person_biol_learning_unit_tutor = create_person( user_biol_learning_unit_tutor)
         tutor2_biol_learning_unit = create_tutor(person_biol_learning_unit_tutor)  # tutor  of LENVI2199
-        create_attribution(learning_unit_biol, tutor2_biol_learning_unit)
+        create_attribution(learning_unit_year_biol, tutor2_biol_learning_unit)
         
         #session_exam of courses
         session_exam_1_learning_unit_chim = create_session_exam(1, learning_unit_year_chim, offer_year_calendar_chim_score_encoding_sess_1)
@@ -310,4 +326,3 @@ class Command(BaseCommand):
             else:
                 make_learning_unit_enrolement_and_exam_enrollment(learning_unit_year_biol, student, offer_year_biol, session_exam_3_learning_unit_biol)
 
-            print(student)
