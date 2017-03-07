@@ -30,6 +30,7 @@ class BaseConfig(AppConfig):
     name = 'base'
 
     def ready(self):
+        import base.signals
         from base.models.models_signals import add_to_tutors_group, remove_from_tutor_group, \
             add_to_pgm_managers_group, remove_from_pgm_managers_group, \
             add_to_students_group, remove_from_student_group
