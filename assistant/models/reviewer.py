@@ -31,6 +31,7 @@ from django.db.models import Q
 from assistant.models import mandate_structure, assistant_mandate, review
 from assistant.enums import reviewer_role
 
+
 class ReviewerAdmin(admin.ModelAdmin):
     list_display = ('person', 'structure', 'role')
     fieldsets = (
@@ -77,7 +78,7 @@ def can_view_review(reviewer_id, mandate, role):
             return False
     else:
         try:
-            current_review = review.find_review_for_mandate_by_role(mandate, role).reverse()[0]
+            current_review = review.find_review_done_for_mandate_by_role(mandate, role).reverse()[0]
         except ObjectDoesNotExist:
             return False
     if reviewer_id == current_review.reviewer.id:
@@ -134,12 +135,12 @@ def find_by_role(role):
     return Reviewer.objects.filter(role=role)
 
 
-def can_delegate_to_structure(reviewer, structure):
+def can_delegate_for_structure(reviewer, a_structure):
     if reviewer.role != "SUPERVISION" and reviewer.role != "RESEARCH":
         return False
-    if structure == reviewer.structure:
+    if a_structure == reviewer.structure:
         return True
-    if structure.part_of == reviewer.structure:
+    if a_structure.part_of == reviewer.structure:
         return True
     else:
         return False

@@ -35,6 +35,7 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from assistant.enums import reviewer_role
 from base.enums import structure_type
+import re
 
 
 def user_is_reviewer(user):
@@ -55,7 +56,7 @@ def review_view(request, mandate_id, role):
     if role == reviewer_role.PHD_SUPERVISOR:
         current_review = review.find_done_by_supervisor_for_mandate(mandate)
     else:
-        current_reviews = review.find_review_for_mandate_by_role(mandate, role)
+        current_reviews = review.find_review_done_for_mandate_by_role(mandate, role)
         current_review = current_reviews.reverse()[0]
     menu = generate_reviewer_menu_tabs(reviewer.find_roles_for_mandates(current_reviewer, mandate), mandate, role)
     return render(request, 'review_view.html', {'review': current_review,
@@ -73,14 +74,16 @@ def review_view(request, mandate_id, role):
 def review_edit(request, mandate_id):
     mandate = assistant_mandate.find_mandate_by_id(mandate_id)
     current_reviewer = None
+    existing_review = None
     try:
         current_reviewer = reviewer.can_edit_review(reviewer.find_by_person(person.find_by_user(request.user)).
                                                     id, mandate_id)
     except ObjectDoesNotExist:
         return HttpResponseRedirect(reverse('assistants_home'))
-    try:
-        existing_review = review.find_by_reviewer_for_mandate(current_reviewer, mandate)
-    except ObjectDoesNotExist:
+    existing_reviews = review.find_review_in_progress_for_mandate_by_role(mandate, current_reviewer.role)
+    if len(existing_reviews) > 0:
+        existing_review = existing_reviews.reverse()[0]
+    else:
         existing_review, created = review.Review.objects.get_or_create(
             mandate=mandate,
             reviewer=current_reviewer,
@@ -169,6 +172,7 @@ def pst_form_view(request, mandate_id):
 
 
 def generate_reviewer_menu_tabs(reviewer_roles_for_mandate, mandate, active_item):
+    active_item = re.sub('_ASSISTANT', '', active_item)
     menu = []
     if mandate.assistant.supervisor:
         if mandate.state == 'RESEARCH' or mandate.state == 'SUPERVISION' or \
@@ -184,15 +188,16 @@ def generate_reviewer_menu_tabs(reviewer_roles_for_mandate, mandate, active_item
                 menu.append({'item': 'PHD_SUPERVISOR', 'class': '', 'action': 'edit'})
     if mandate_structure.find_by_mandate_and_type(mandate, structure_type.INSTITUTE):
         if mandate.state == 'SUPERVISION' or mandate.state == 'VICE_RECTOR' or mandate.state == 'DONE':
-            if reviewer_role.RESEARCH in reviewer_roles_for_mandate or reviewer_role.SUPERVISION in \
-                    reviewer_roles_for_mandate or reviewer_role.SECTOR_VICE_RECTOR in reviewer_roles_for_mandate:
+            if any(reviewer_role.RESEARCH in x for x in reviewer_roles_for_mandate) or \
+                    any(reviewer_role.SUPERVISION in x for x in reviewer_roles_for_mandate) or \
+                    any(reviewer_role.SECTOR_VICE_RECTOR in x for x in reviewer_roles_for_mandate):
                 if active_item == 'RESEARCH':
                     menu.append({'item': 'RESEARCH', 'class': 'active', 'action': 'view'})
                 else:
                     menu.append({'item': 'RESEARCH', 'class': '', 'action': 'view'})
             else:
                 menu.append({'item': 'RESEARCH', 'class': 'disabled', 'action': ''})
-        elif mandate.state == 'RESEARCH' and reviewer_role.RESEARCH in reviewer_roles_for_mandate:
+        elif mandate.state == 'RESEARCH' and any(reviewer_role.RESEARCH in x for x in reviewer_roles_for_mandate):
             if active_item == 'RESEARCH':
                 menu.append({'item': 'RESEARCH', 'class': 'active', 'action': 'edit'})
             else:
@@ -200,15 +205,15 @@ def generate_reviewer_menu_tabs(reviewer_roles_for_mandate, mandate, active_item
         else:
             menu.append({'item': reviewer_role.RESEARCH, 'class': 'disabled', 'action': ''})
     if mandate.state == 'VICE_RECTOR' or mandate.state == 'DONE':
-        if reviewer_role.SUPERVISION in reviewer_roles_for_mandate or reviewer_role.SECTOR_VICE_RECTOR in \
-                reviewer_roles_for_mandate:
+        if any(reviewer_role.SUPERVISION in x for x in reviewer_roles_for_mandate) or \
+                any(reviewer_role.SECTOR_VICE_RECTOR in x for x in reviewer_roles_for_mandate):
             if active_item == 'SUPERVISION':
                 menu.append({'item': 'SUPERVISION', 'class': 'active', 'action': 'view'})
             else:
                 menu.append({'item': 'SUPERVISION', 'class': '', 'action': 'view'})
         else:
             menu.append({'item': 'SUPERVISION', 'class': 'disabled', 'action': ''})
-    elif mandate.state == 'SUPERVISION' and reviewer_role.SUPERVISION in reviewer_roles_for_mandate:
+    elif mandate.state == 'SUPERVISION' and any(reviewer_role.SUPERVISION in x for x in reviewer_roles_for_mandate):
         if active_item == 'SUPERVISION':
             menu.append({'item': 'SUPERVISION', 'class': 'active', 'action': 'edit'})
         else:
@@ -216,14 +221,15 @@ def generate_reviewer_menu_tabs(reviewer_roles_for_mandate, mandate, active_item
     else:
         menu.append({'item': 'SUPERVISION', 'class': 'disabled', 'action': ''})
     if mandate.state == 'DONE':
-        if reviewer_role.SECTOR_VICE_RECTOR in reviewer_roles_for_mandate:
+        if any(reviewer_role.SECTOR_VICE_RECTOR in x for x in reviewer_roles_for_mandate):
             if active_item == 'VICE_RECTOR':
                 menu.append({'item': 'VICE_RECTOR', 'class': 'active', 'action': 'view'})
             else:
                 menu.append({'item': 'VICE_RECTOR', 'class': '', 'action': 'view'})
         else:
             menu.append({'item': 'VICE_RECTOR', 'class': 'disabled', 'action': ''})
-    elif mandate.state == 'VICE_RECTOR' and reviewer_role.SECTOR_VICE_RECTOR in reviewer_roles_for_mandate:
+    elif mandate.state == 'VICE_RECTOR' and any(reviewer_role.SECTOR_VICE_RECTOR in x for x in
+                                                reviewer_roles_for_mandate):
         if active_item == reviewer_role.SECTOR_VICE_RECTOR:
             menu.append({'item': 'VICE_RECTOR', 'class': 'active', 'action': 'edit'})
         else:
