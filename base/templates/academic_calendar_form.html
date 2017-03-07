@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load dictionnary %}
 {% load format %}
-
 {% comment "License" %}
 * OSIS stands for Open Student Information System. It's an application
 * designed to manage the core business of higher education institutions,
@@ -76,9 +75,11 @@
                 </div>
                 <div class="col-md-2">
                     <label for="txt_start_date">{% trans 'start_date'%}</label>
+
                     <input type="text" class="form-control"
-                           value="{{ form.start_date.value| default_if_none:''| date_in_form_format:"d/m/Y" }}"
+                           value="{{ form.start_date.value| default_if_none:''| date_in_form_format:"d/m/Y" }}"q
                     name="start_date" id="txt_start_date"/>
+                    <p class="caption">(format : {% trans 'format_date'%})</p>
                     <span class="error">{{ form.start_date.errors }}</span>
                 </div>
                 <div class="col-md-2">
@@ -86,6 +87,7 @@
                     <input type="text" class="form-control"
                            value="{{ form.end_date.value| default_if_none:''| date_in_form_format:"d/m/Y" }}"
                            name="end_date" id="txt_end_date"/>
+                    <p class="caption">(format : {% trans 'format_date'%})</p>
                     <span class="error">{{ form.end_date.errors }}</span>
                 </div>
             </div>
