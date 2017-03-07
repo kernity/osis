@@ -9,24 +9,19 @@ from base import models as mdl_base
 from reference import models as mdl_reference
 from attribution import models as mdl_attribution
 from faker import Faker
+from backoffice.management.commands import generate_records_academic_year
+from backoffice.management.commands import generate_records_academic_calendar
+
 import datetime
 
 
 fake = Faker()
 
-def create_academic_year():
-    start_date = datetime.datetime(2016, 9, 15)
-    end_date = datetime.datetime(2017, 9, 14)
-    year = start_date.year
-    academic_year = mdl_base.academic_year.AcademicYear.objects.create(year=year, start_date= start_date,
-                                                                       end_date=end_date)
-    return academic_year
 
-def create_academic_calendar(academic_year, title, start_date, end_date):
-    an_academic_calendar = mdl_base.academic_calendar.AcademicCalendar(academic_year=academic_year, start_date=start_date,
-                                                              end_date=end_date,title=title)
-    an_academic_calendar.save(functions=[])
-    return an_academic_calendar
+def create_record(model_class, **kwargs):
+    model_class.objects.create(**kwargs)
+
+
 
 
 def create_offer_year_calendar(offer_year, academic_calendar, start_date, end_date):
@@ -141,8 +136,8 @@ def create_tutor(person):
     tutor = mdl_base.tutor.Tutor.objects.create(person=person)
     return tutor
 
-def create_attribution(learning_unit_year,tutor):
-    attribution = mdl_attribution.attribution.Attribution.objects.create(learning_unit_year = learning_unit_year,tutor=tutor)
+def create_attribution(learning_unit_year,tutor, score_responsible):
+    attribution = mdl_attribution.attribution.Attribution.objects.create(learning_unit_year = learning_unit_year,tutor=tutor, score_responsible= score_responsible)
     return attribution
 
 def create_student(user):
@@ -179,6 +174,8 @@ def make_learning_unit_enrolement_and_exam_enrollment(learning_unit_year,student
 
 
 
+
+
 class Command(BaseCommand):
     #Creates the records for the database
 
@@ -199,17 +196,29 @@ class Command(BaseCommand):
         acr_ch='CHIM'
         acr_biol = 'BIOL'
         acr_sc = 'SC'
-        encoding_event ='Encodage de notes session'
-        delib_event ='Deliberation session'
 
-        academic_year = create_academic_year()
-        academic_calendar_score_encoding_sess_1 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,1), datetime.datetime(2017, 1, 15), datetime.datetime(2017, 1, 30))
-        academic_calendar_score_encoding_sess_2 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,2), datetime.datetime(2017, 6, 20), datetime.datetime(2017, 6, 25))
-        academic_calendar_score_encoding_sess_3 = create_academic_calendar(academic_year,"%s%d"%(encoding_event,3), datetime.datetime(2017, 9, 1), datetime.datetime(2017, 9, 15))
+        academic_year_before = generate_records_academic_year.create_academic_year_before()
+        academic_year_after = generate_records_academic_year.create_academic_year_after()
+        academic_year_actual = generate_records_academic_year.create_academic_year_actual()
+        academic_calendar_score_encoding_sess_before = generate_records_academic_calendar.create_academic_calendar_encoding_event_before(academic_year)
+        academic_calendar_score_encoding_sess_in = generate_records_academic_calendar.create_academic_calendar_encoding_event_before(
+           academic_year_actual)
+        academic_calendar_score_encoding_sess_after = generate_records_academic_calendar.create_academic_calendar_encoding_event_before(
+           academic_year_actual)
 
-        academic_calendar_delibe_sess_1 = create_academic_calendar(academic_year,"%s%d"%(delib_event,1), datetime.datetime(2017, 1, 30), datetime.datetime(2017, 2, 15))
-        academic_calendar_delibe_sess_2 = create_academic_calendar(academic_year,"%s%d"%(delib_event,2), datetime.datetime(2017, 6, 25), datetime.datetime(2017, 6, 30))
-        academic_calendar_delibe_sess_3 = create_academic_calendar(academic_year,"%s%d"%(delib_event,3), datetime.datetime(2017, 9, 15), datetime.datetime(2017, 9, 25))
+        academic_calendar_score_delibe_sess_in = generate_records_academic_calendar.create_academic_calendar_delibe_event_in(
+            academic_year_actual)
+        academic_calendar_score_delibe_sess_after = generate_records_academic_calendar.create_academic_calendar_delibe_event_after(
+            academic_year_actual)
+
+
+        academic_calendar_score_encoding_sess_1 = None
+        academic_calendar_score_encoding_sess_2 = None
+        academic_calendar_score_encoding_sess_3 = None
+
+        academic_calendar_delibe_sess_1 = None
+        academic_calendar_delibe_sess_2 = None
+        academic_calendar_delibe_sess_3 = None
 
         country =  create_be_country()
         organisation = create_organization()
@@ -221,9 +230,9 @@ class Command(BaseCommand):
         campus = create_campus(localisation_lln, organisation)
 
         offer = create_offer(bac_sc)
-        offer_year_chim =create_offer_year(offer,academic_year,structure_sector,structure_fac,structure_fac,'CHIM11BA','Première année de bachelier en sciences chimiques',
+        offer_year_chim =create_offer_year(offer,academic_year_actual,structure_sector,structure_fac,structure_fac,'CHIM11BA','Première année de bachelier en sciences chimiques',
                                       'I Ba en scs chimiques','Bachelier',recipient_sc,adres_sc,cp_lln,localisation_lln,country,campus)
-        offer_year_biol = create_offer_year(offer, academic_year, structure_sector, structure_fac, structure_fac,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
+        offer_year_biol = create_offer_year(offer, academic_year_actual, structure_sector, structure_fac, structure_fac,'BIOL11BA', 'Première année de bachelier en sciences biologiques',
                                        'I Ba en scs biologiques', 'Bachelier',recipient_sc,adres_sc ,cp_lln,localisation_lln,country,campus)
 
         start_date=None
@@ -250,14 +259,14 @@ class Command(BaseCommand):
 
         #decimal score not allowed
         learning_unit_chim = create_learning_unit(acronym_chim_learning,title_chim_learning,2004,end_learning)
-        learning_unit_year_chim = create_learning_unit_year(academic_year,
+        learning_unit_year_chim = create_learning_unit_year(academic_year_actual,
                                                                                learning_unit_chim,
                                                                                acronym_chim_learning, title_chim_learning,
                                                                                credits)
         credits = 20
         #decimal score allowed
         learning_unit_biol =  create_learning_unit(acronym_biol_learning,title_biol_learning,2007,end_learning)
-        learning_unit_year_biol = create_learning_unit_year(academic_year,learning_unit_biol,acronym_biol_learning,title_biol_learning,credits)
+        learning_unit_year_biol = create_learning_unit_year(academic_year_actual,learning_unit_biol,acronym_biol_learning,title_biol_learning,credits)
 
 
         #program manager
@@ -270,24 +279,24 @@ class Command(BaseCommand):
         user_chim_learning_unit_tutor_leader =create_user('eniLchim','evaseLchim','evaseChim@gmail.com')
         person_chim_learning_unit_tutor_leader =create_person(user_chim_learning_unit_tutor_leader)
         tutor_chim_learning_unit = create_tutor(person_chim_learning_unit_tutor_leader) #tutor and leader of lchm1111
-        create_attribution(learning_unit_year_chim,tutor_chim_learning_unit)
+        create_attribution(learning_unit_year_chim,tutor_chim_learning_unit,True)
 
 
         user_biol_learning_unit_tutor_leader = create_user('eniLbiol', 'evaseLbiol', 'evaseBiol@gmail.com')
         person_biol_learning_unit_tutor_leader = create_person(user_biol_learning_unit_tutor_leader)
         tutor_biol_learning_unit = create_tutor(person_biol_learning_unit_tutor_leader)  # tutor and leader of LENVI2199
-        create_attribution(learning_unit_year_biol, tutor_biol_learning_unit)
+        create_attribution(learning_unit_year_biol, tutor_biol_learning_unit,False)
         #prof
         user_chim_learning_unit_tutor= create_user('eniTchim', 'evaseTchim', 'evase@gmail.com')
         person_chim_learning_unit_tutor = create_person(user_chim_learning_unit_tutor)
         tutor2_chim_learning_unit = create_tutor(person_chim_learning_unit_tutor)  # tutor  of lchm1111
-        create_attribution(learning_unit_year_chim, tutor2_chim_learning_unit)
+        create_attribution(learning_unit_year_chim, tutor2_chim_learning_unit,True)
 
 
         user_biol_learning_unit_tutor = create_user('eniTbiol', 'evaseTbiol', 'evase@gmail.com')
         person_biol_learning_unit_tutor = create_person( user_biol_learning_unit_tutor)
         tutor2_biol_learning_unit = create_tutor(person_biol_learning_unit_tutor)  # tutor  of LENVI2199
-        create_attribution(learning_unit_year_biol, tutor2_biol_learning_unit)
+        create_attribution(learning_unit_year_biol, tutor2_biol_learning_unit,False)
         
         #session_exam of courses
         session_exam_1_learning_unit_chim = create_session_exam(1, learning_unit_year_chim, offer_year_calendar_chim_score_encoding_sess_1)

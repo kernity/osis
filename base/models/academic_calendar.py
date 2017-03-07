@@ -46,7 +46,7 @@ class AcademicCalendar(SerializableModel):
     reference = models.CharField(max_length=50, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        if FUNCTIONS not in kwargs.keys():
+        if FUNCTIONS not in kwargs:
             raise FunctionAgrumentMissingException('The kwarg "{0}" must be set.'.format(FUNCTIONS))
         functions = kwargs.pop(FUNCTIONS)
         if self.start_date and self.end_date and self.start_date >= self.end_date:
