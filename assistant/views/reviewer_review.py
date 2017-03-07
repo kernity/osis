@@ -56,7 +56,7 @@ def review_view(request, mandate_id, role):
     if role == reviewer_role.PHD_SUPERVISOR:
         current_review = review.find_done_by_supervisor_for_mandate(mandate)
     else:
-        current_reviews = review.find_review_done_for_mandate_by_role(mandate, role)
+        current_reviews = review.find_review_for_mandate_by_role(mandate, role, 'DONE')
         current_review = current_reviews.reverse()[0]
     menu = generate_reviewer_menu_tabs(reviewer.find_roles_for_mandates(current_reviewer, mandate), mandate, role)
     return render(request, 'review_view.html', {'review': current_review,
@@ -80,7 +80,7 @@ def review_edit(request, mandate_id):
                                                     id, mandate_id)
     except ObjectDoesNotExist:
         return HttpResponseRedirect(reverse('assistants_home'))
-    existing_reviews = review.find_review_in_progress_for_mandate_by_role(mandate, current_reviewer.role)
+    existing_reviews = review.find_review_for_mandate_by_role(mandate, current_reviewer.role, 'IN_PROGRESS')
     if len(existing_reviews) > 0:
         existing_review = existing_reviews.reverse()[0]
     else:

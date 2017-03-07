@@ -78,7 +78,7 @@ def can_view_review(reviewer_id, mandate, role):
             return False
     else:
         try:
-            current_review = review.find_review_done_for_mandate_by_role(mandate, role).reverse()[0]
+            current_review = review.find_review_for_mandate_by_role(mandate, role, 'DONE').reverse()[0]
         except ObjectDoesNotExist:
             return False
     if reviewer_id == current_review.reviewer.id:

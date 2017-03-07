@@ -52,13 +52,8 @@ def find_by_id(review_id):
     return Review.objects.get(id=review_id)
 
 
-def find_review_done_for_mandate_by_role(mandate, role):
-    return Review.objects.filter(mandate=mandate).filter(status='DONE').\
-        filter(reviewer__role__icontains=role.split('_', 1)[0]).order_by('changed')
-
-
-def find_review_in_progress_for_mandate_by_role(mandate, role):
-    return Review.objects.filter(mandate=mandate).filter(status='IN_PROGRESS').\
+def find_review_for_mandate_by_role(mandate, role, status):
+    return Review.objects.filter(mandate=mandate).filter(status=status).\
         filter(reviewer__role__icontains=role.split('_', 1)[0]).order_by('changed')
 
 
