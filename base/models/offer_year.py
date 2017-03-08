@@ -24,14 +24,13 @@
 #
 ##############################################################################
 from django.db import models
-from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from base.models import offer, program_manager, academic_year
-from osis_common.models.serializable_model import SerializableModel
+from osis_common.models.serializable_model import SerializableModel, SerializableModelAdmin
 
 
-class OfferYearAdmin(admin.ModelAdmin):
-    list_display = ('acronym', 'offer', 'parent', 'title', 'academic_year', 'changed')
+class OfferYearAdmin(SerializableModelAdmin):
+    list_display = ('acronym', 'title', 'academic_year', 'offer', 'parent', 'changed')
     fieldsets = ((None, {'fields': ('offer', 'academic_year', 'entity_administration', 'entity_administration_fac',
                                     'entity_management', 'entity_management_fac', 'acronym', 'title', 'parent',
                                     'title_international', 'title_short', 'title_printable', 'grade', 'recipient',

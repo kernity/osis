@@ -57,10 +57,12 @@ INSTALLED_APPS = (
     'ckeditor',
     'reference',
     'base',
+    'attribution',
     'assistant',
     'dissertation',
     'internship',
     'admission',
+    'localflavor',
 )
 
 # check if we are testing right now
@@ -113,8 +115,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'osis_backend_dev',
-        'USER': 'osis_usr',
-        'PASSWORD': 'osis',
+        'USER': "postgres" if os.environ.get("ENV") == "test" else  'osis_usr',
+        'PASSWORD': "" if os.environ.get("ENV") == "test" else 'osis',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     },
@@ -146,6 +148,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'queue_exception': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -155,6 +162,7 @@ LOGGING = {
 }
 
 DEFAULT_LOGGER = 'default'
+QUEUE_EXCEPTION_LOGGER = 'queue_exception'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
